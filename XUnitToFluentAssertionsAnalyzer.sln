@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31320.298
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitToFluentAssertionsAnalyzer", "XUnitToFluentAssertionsAnalyzer\XUnitToFluentAssertionsAnalyzer\XUnitToFluentAssertionsAnalyzer.csproj", "{BF5457B6-418B-4CFA-9C5A-636B52A776F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitToFluentAssertionsAnalyzer.Test", "XUnitToFluentAssertionsAnalyzer\XUnitToFluentAssertionsAnalyzer.Test\XUnitToFluentAssertionsAnalyzer.Test.csproj", "{0F21616A-F924-42CA-B7C6-0E9ED4416776}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF5457B6-418B-4CFA-9C5A-636B52A776F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF5457B6-418B-4CFA-9C5A-636B52A776F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF5457B6-418B-4CFA-9C5A-636B52A776F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF5457B6-418B-4CFA-9C5A-636B52A776F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F21616A-F924-42CA-B7C6-0E9ED4416776}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F21616A-F924-42CA-B7C6-0E9ED4416776}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F21616A-F924-42CA-B7C6-0E9ED4416776}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F21616A-F924-42CA-B7C6-0E9ED4416776}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1FB14A4F-BE40-45B2-8848-8BA80822621A}
+	EndGlobalSection
+EndGlobal
