@@ -1,0 +1,85 @@
+name: publish
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - '*'
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  NuGetDirectory: ${{ github.workspace}}/nuget
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  create_nuget:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+    - run: dotnet pack --configuration Release /bl
+    - uses: actions/upload-artifact@v2
+      with:
+        name: nuget
+        if-no-files-found: error
+        retention-days: 3
+        path: '**/*.nupkg'
+
+  build_and_test:
+    runs-on: ${{ matrix.runs-on }}
+    env:
+      TestResultsDirectory: ${{ github.workspace}}/TestResults
+    strategy:
+      matrix:
+        runs-on: [ ubuntu-20.04, windows-2019 ]
+        configuration: [ Debug, Release ]
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core (global.json)
+      uses: actions/setup-dotnet@v1
+    - run: dotnet test --configuration ${{ matrix.configuration }} --logger trx --results-directory "${{ env.TestResultsDirectory }}" /p:WarningsAsErrors=true
+      name: Run tests
+    - uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: test-results-${{ matrix.runs-on }}-${{ matrix.configuration }}
+        if-no-files-found: error
+        retention-days: 3
+        path: ${{ env.TestResultsDirectory }}/*.trx
+
+  deploy:
+    runs-on: 'ubuntu-20.04'
+    needs: [ create_nuget, build_and_test ]
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: nuget
+        path: ${{ env.NuGetDirectory }}
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+    - run: |
+        Write-Host "Current ref: $env:GITHUB_REF"
+        Write-Host "Searching nupkg in folder: ${{ env.NuGetDirectory }}"
+        $files = Get-ChildItem "${{ env.NuGetDirectory }}/*" -Recurse -Include *.nupkg
+        foreach($file in $files) {
+            Write-Host "Pushing NuGet package: $($file.FullName)"
+            if ($env:GITHUB_REF -eq 'refs/heads/main')
+            {
+              & dotnet nuget push "$($file.FullName)" --api-key "$env:NuGetApiKey" --source https://api.nuget.org/v3/index.json --force-english-output --skip-duplicate
+            }
+            else
+            {
+              Write-Host "Not on the default branch => Do not push"
+            }
+        }
+      name: Publish NuGet packages
+      if: always()
+      env:
+        NuGetApiKey: ${{ secrets.NuGetApiKey }}
