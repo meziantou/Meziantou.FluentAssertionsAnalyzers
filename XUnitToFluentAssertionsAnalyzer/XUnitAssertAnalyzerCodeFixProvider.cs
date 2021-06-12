@@ -111,7 +111,7 @@ namespace XUnitToFluentAssertionsAnalyzer
                      method.Parameters[0].Type.OriginalDefinition.IsOrImplements(compilation, "System.Collections.Generic.IEnumerable`1") &&
                      method.Parameters[1].Type.OriginalDefinition.IsOrImplements(compilation, "System.Collections.Generic.IEnumerable`1"))
             {
-                var newMethodName = methodName is "Equal" ? "BeEquivalentTo" : "NotBeEquivalentTo";
+                var newMethodName = methodName is "Equal" ? "Equal" : "NotEqual";
                 result = InvocationExpression(
                     MemberAccessExpression(InvokeShould(originalArguments[1]), newMethodName),
                     ArgumentListWithoutParameterName(originalMethod.ArgumentList.Arguments[0]));

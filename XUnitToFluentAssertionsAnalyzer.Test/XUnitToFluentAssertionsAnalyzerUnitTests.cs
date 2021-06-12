@@ -778,7 +778,7 @@ class Test
     {
         var collection = System.Array.Empty<object>();
         var expected = System.Array.Empty<object>();
-        collection.Should().BeEquivalentTo(expected);
+        collection.Should().Equal(expected);
     }
 }
 ";

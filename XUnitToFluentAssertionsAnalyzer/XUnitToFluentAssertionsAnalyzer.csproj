@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <LangVersion>preview</LangVersion>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <developmentDependency>true</developmentDependency>
     <Description>A Roslyn analyzer to help migrate from xunit assertions to FluentAssertions</Description>
