@@ -1,0 +1,27 @@
+<Project>
+    <PropertyGroup>
+      <LangVersion>preview</LangVersion>
+      <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+  
+    <PropertyGroup>  
+      <Authors>Meziantou</Authors>
+      <Company>Meziantou</Company>
+      <PackageIcon>icon.png</PackageIcon>
+      <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+  
+    <ItemGroup>
+      <None Include="$(MSBuildThisFileDirectory)\icon.png" Pack="true" PackagePath="" Visible="false" />
+      <None Include="$(MSBuildThisFileDirectory)\LICENSE.md" Pack="true" PackagePath="" Visible="false" />
+      <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="" Visible="false" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <PackageReference Include="Meziantou.DotNet.CodingStandard" Version="1.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+  </Project>

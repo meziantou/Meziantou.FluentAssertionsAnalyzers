@@ -2,17 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <LangVersion>preview</LangVersion>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <developmentDependency>true</developmentDependency>
-    <Description>A Roslyn analyzer to help migrate from xunit assertions to FluentAssertions</Description>
-    <PackageTags>analyzers, xunit, fluentassertions</PackageTags>
+    <Description>A Roslyn analyzer to help migrate from Xunit / NUnit assertions to FluentAssertions</Description>
+    <PackageTags>analyzers, nunit, xunit, fluentassertions</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
-
-    <DebugSymbols>True</DebugSymbols>
-    <DebugType>Embedded</DebugType>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,13 +17,5 @@
 
   <ItemGroup>
     <None Include="$(OutputPath)\netstandard2.0\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="../LICENSE.md" Pack="true" PackagePath="$(PackageLicenseFile)"/>
   </ItemGroup>
 </Project>
