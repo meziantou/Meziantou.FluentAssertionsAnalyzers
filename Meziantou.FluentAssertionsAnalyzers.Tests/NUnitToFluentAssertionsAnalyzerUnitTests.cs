@@ -480,6 +480,44 @@ class Test
     [InlineData(@"StringAssert.StartsWith(""expected"", ""actual"")", @"""actual"".Should().StartWith(""expected"")")]
     [InlineData(@"StringAssert.StartsWith(""expected"", ""actual"", ""because"")", @"""actual"".Should().StartWith(""expected"", ""because"")")]
     [InlineData(@"StringAssert.StartsWith(""expected"", ""actual"", ""because"", 1, 2)", @"""actual"".Should().StartWith(""expected"", ""because"", 1, 2)")]
+
+    [InlineData(@"Assert.That(false, Is.True)", @"false.Should().BeTrue()")]
+    [InlineData(@"Assert.That(false, Is.False)", @"false.Should().BeFalse()")]
+
+    [InlineData(@"Assert.That(false, Is.Not.True)", @"false.Should().BeFalse()")]
+    [InlineData(@"Assert.That(false, Is.Not.False)", @"false.Should().BeTrue()")]
+
+    [InlineData(@"Assert.That("""", Is.Null)", @""""".Should().BeNull()")]
+    [InlineData(@"Assert.That("""", Is.Empty)", @""""".Should().BeEmpty()")]
+    [InlineData(@"Assert.That(collection, Is.Empty)", @"collection.Should().BeEmpty()")]
+    [InlineData(@"Assert.That(collection, Is.Empty, ""because"")", @"collection.Should().BeEmpty(""because"")")]
+
+    [InlineData(@"Assert.That("""", Is.Not.Null)", @""""".Should().NotBeNull()")]
+    [InlineData(@"Assert.That("""", Is.Not.Empty)", @""""".Should().NotBeEmpty()")]
+    [InlineData(@"Assert.That(collection, Is.Not.Empty)", @"collection.Should().NotBeEmpty()")]
+    [InlineData(@"Assert.That(collection, Is.Not.Empty, ""because"")", @"collection.Should().NotBeEmpty(""because"")")]
+
+    [InlineData(@"Assert.That("""", Is.Null.Or.Empty)", @""""".Should().BeNullOrEmpty()")]
+    [InlineData(@"Assert.That("""", Is.Not.Null.Or.Empty)", @""""".Should().NotBeNullOrEmpty()")]
+
+    [InlineData(@"Assert.That(collection, Has.One.Items)", @"collection.Should().HaveCount(1)")]
+    [InlineData(@"Assert.That(collection, Has.Count.EqualTo(2))", @"collection.Should().HaveCount(2)")]
+
+    [InlineData(@"Assert.That("""", Is.EqualTo(""expected""))", @""""".Should().Be(""expected"")")]
+    [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected""))", @""""".Should().NotBe(""expected"")")]
+
+    [InlineData(@"Assert.That("""", Does.Contain(""expected""))", @""""".Should().Contain(""expected"")")]
+    [InlineData(@"Assert.That("""", Does.Not.Contain(""expected""))", @""""".Should().NotContain(""expected"")")]
+
+    [InlineData(@"Assert.That("""", Does.EndWith(""expected""))", @""""".Should().EndWith(""expected"")")]
+    [InlineData(@"Assert.That("""", Does.Not.EndWith(""expected""))", @""""".Should().NotEndWith(""expected"")")]
+
+    [InlineData(@"Assert.That("""", Does.Not.EndsWith(""expected""))", @""""".Should().NotEndWith(""expected"")")]
+
+    [InlineData(@"Assert.That("""", Does.StartWith(""expected""))", @""""".Should().StartWith(""expected"")")]
+    [InlineData(@"Assert.That("""", Does.Not.StartWith(""expected""))", @""""".Should().NotStartWith(""expected"")")]
+
+    [InlineData(@"Assert.That("""", Does.Not.StartsWith(""expected""))", @""""".Should().NotStartWith(""expected"")")]
     public Task Assert_Tests(string code, string fix)
     {
         return Assert(

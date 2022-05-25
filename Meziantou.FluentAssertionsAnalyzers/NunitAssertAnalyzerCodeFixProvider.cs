@@ -79,8 +79,6 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
     void Assert.Multiple(AsyncTestDelegate testDelegate)
     void Assert.Pass(string message, object[] args)
     void Assert.Pass(string message)
-    void Assert.That(bool condition, string message, object[] args)
-    void Assert.That(bool condition)
     void Assert.That(bool condition, Func<string> getExceptionMessage)
     void Assert.That(Func<bool> condition, string message, object[] args)
     void Assert.That(Func<bool> condition)
@@ -166,6 +164,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
 
         var exceptionSymbol = compilation.GetTypeByMetadataName("System.Exception");
         var typeSymbol = compilation.GetTypeByMetadataName("System.Type");
+        var resolveConstraintSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint");
 
         SyntaxNode result = null;
         var addImports = true;
@@ -387,6 +386,171 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             {
                 var action = InvokeFluentActionsInvoking(compilation, generator, arguments[0].Expression);
                 result = RewriteUsingShould(action, "NotThrowAsync", arguments.Skip(1));
+            }
+            else if (methodName is "That")
+            {
+                if (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(resolveConstraintSymbol, SymbolEqualityComparer.Default))
+                {
+                    var isSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Is");
+                    var hasSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Has");
+                    var doesSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Does");
+                    var constraintExpressionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.ConstraintExpression");
+
+                    var op = semanticModel.GetOperation(arguments[1].Expression, cancellationToken)?.RemoveConversion();
+                    if (op is not null)
+                    {
+                        if (method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean && Is(isSymbol, "True"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeTrue", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean && Is(isSymbol, "False"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeFalse", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean && Is(isSymbol, "Not", "True"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeFalse", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean && Is(isSymbol, "Not", "False"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeTrue", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (Is(isSymbol, "Empty"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeEmpty", arguments.Skip(2));
+                        }
+                        else if (Is(isSymbol, "Not", "Empty"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotBeEmpty", arguments.Skip(2));
+                        }
+                        else if (Is(isSymbol, "Null"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeNull", arguments.Skip(2));
+                        }
+                        else if (Is(isSymbol, "Not", "Null"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotBeNull", arguments.Skip(2));
+                        }
+                        else if (Is(isSymbol, "Null", "Or", "Empty") || Is(isSymbol, "Empty", "Or", "Null"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeNullOrEmpty", arguments.Skip(2));
+                        }
+                        else if (Is(isSymbol, "Not", "Null", "Or", "Empty") || Is(isSymbol, "Not", "Empty", "Or", "Null"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotBeNullOrEmpty", arguments.Skip(2));
+                        }
+                        else if (Is(hasSymbol, "One", "Items"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(NumericLiteral(1), arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out var expected, isSymbol, "EqualTo"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "Be", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "Not", "EqualTo"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotBe", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, hasSymbol, "Count", "EqualTo"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, hasSymbol, "Exactly", "Items"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, doesSymbol, "Contain"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "Contain", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, doesSymbol, "Not", "Contain"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotContain", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, doesSymbol, "EndWith"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "EndWith", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, doesSymbol, "Not", "EndWith") || IsMethod(out expected, doesSymbol, "Not", "EndsWith"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotEndWith", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, doesSymbol, "StartWith"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "StartWith", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, doesSymbol, "Not", "StartWith") || IsMethod(out expected, doesSymbol, "Not", "StartsWith"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotStartWith", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                    }
+
+                    bool Is(ITypeSymbol root, params string[] memberNames)
+                    {
+                        var currentOp = op;
+                        for (var i = memberNames.Length - 1; i >= 0; i--)
+                        {
+                            if (currentOp is not IMemberReferenceOperation member)
+                                return false;
+
+                            if (member.Member.Name != memberNames[i])
+                                return false;
+
+                            if (i == 0)
+                                return SymbolEqualityComparer.Default.Equals(member.Member.ContainingType, root);
+
+                            if (member.Instance == null)
+                                break;
+
+                            currentOp = member.Instance;
+                        }
+
+                        return false;
+                    }
+
+                    bool IsMethod(out ExpressionSyntax argument, ITypeSymbol root, params string[] memberNames)
+                    {
+                        argument = null;
+
+                        var currentOp = op;
+                        for (var i = memberNames.Length - 1; i >= 0; i--)
+                        {
+                            if (currentOp is IInvocationOperation invocation)
+                            {
+                                if (argument != null || invocation.Arguments.Length != 1)
+                                    return false;
+
+                                if (invocation.TargetMethod.Name != memberNames[i])
+                                    return false;
+
+                                argument = (ExpressionSyntax)invocation.Arguments[0].Value.Syntax;
+
+                                if (i == 0)
+                                    return SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, root);
+
+                                currentOp = invocation.Instance;
+                            }
+                            else
+                            {
+                                if (currentOp is not IMemberReferenceOperation member)
+                                    return false;
+
+                                if (member.Member.Name != memberNames[i])
+                                    return false;
+
+                                if (i == 0)
+                                    return SymbolEqualityComparer.Default.Equals(member.Member.ContainingType, root);
+
+                                if (member.Instance == null)
+                                    break;
+
+                                currentOp = member.Instance;
+                            }
+                        }
+
+                        return false;
+                    }
+                }
             }
         }
         else if (method.ContainingType.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.StringAssert"), SymbolEqualityComparer.Default))
