@@ -484,8 +484,14 @@ class Test
     [InlineData(@"Assert.That(false, Is.True)", @"false.Should().BeTrue()")]
     [InlineData(@"Assert.That(false, Is.False)", @"false.Should().BeFalse()")]
 
+    [InlineData(@"Assert.That((bool?)false, Is.True)", @"((bool?)false).Should().BeTrue()")]
+    [InlineData(@"Assert.That((bool?)false, Is.False)", @"((bool?)false).Should().BeFalse()")]
+
     [InlineData(@"Assert.That(false, Is.Not.True)", @"false.Should().BeFalse()")]
     [InlineData(@"Assert.That(false, Is.Not.False)", @"false.Should().BeTrue()")]
+
+    [InlineData(@"Assert.That((bool?)false, Is.Not.True)", @"((bool?)false).Should().NotBeTrue()")]
+    [InlineData(@"Assert.That((bool?)false, Is.Not.False)", @"((bool?)false).Should().NotBeFalse()")]
 
     [InlineData(@"Assert.That("""", Is.Null)", @""""".Should().BeNull()")]
     [InlineData(@"Assert.That("""", Is.Empty)", @""""".Should().BeEmpty()")]

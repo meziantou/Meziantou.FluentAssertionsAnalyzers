@@ -397,6 +397,8 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                     var throwsSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Throws");
                     var constraintExpressionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.ConstraintExpression");
 
+                    var nullableBooleanSymbol = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(compilation.GetSpecialType(SpecialType.System_Boolean));
+
                     var op = semanticModel.GetOperation(arguments[1].Expression, cancellationToken)?.RemoveImplicitConversion();
                     if (op is not null)
                     {
@@ -415,6 +417,22 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         else if (method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean && Is(isSymbol, "Not", "False"))
                         {
                             result = RewriteUsingShould(arguments[0], "BeTrue", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (method.Parameters[0].Type.Equals(nullableBooleanSymbol, SymbolEqualityComparer.Default) && Is(isSymbol, "True"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeTrue", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (method.Parameters[0].Type.Equals(nullableBooleanSymbol, SymbolEqualityComparer.Default) && Is(isSymbol, "False"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeFalse", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (method.Parameters[0].Type.Equals(nullableBooleanSymbol, SymbolEqualityComparer.Default) && Is(isSymbol, "Not", "True"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotBeTrue", Array.Empty<ArgumentSyntax>());
+                        }
+                        else if (method.Parameters[0].Type.Equals(nullableBooleanSymbol, SymbolEqualityComparer.Default) && Is(isSymbol, "Not", "False"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "NotBeFalse", Array.Empty<ArgumentSyntax>());
                         }
                         else if (Is(isSymbol, "Empty"))
                         {
