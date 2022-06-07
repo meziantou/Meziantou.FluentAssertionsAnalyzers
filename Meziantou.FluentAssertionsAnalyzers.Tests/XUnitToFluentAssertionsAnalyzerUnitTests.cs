@@ -11,7 +11,7 @@ public sealed class XUnitToFluentAssertionsAnalyzerUnitTests
         return new ProjectBuilder()
             .WithTargetFramework(TargetFramework.Net6_0)
             .WithAnalyzer<AssertAnalyzer>(id: "MFA001")
-            .WithCodeFixProvider<XUnitAssertAnalyzerCodeFixProvider>()
+            .AddAllCodeFixers()
             .AddXUnitApi()
             .AddFluentAssertionsApi();
     }

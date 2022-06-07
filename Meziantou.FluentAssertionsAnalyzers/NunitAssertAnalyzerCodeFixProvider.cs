@@ -397,7 +397,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                     var throwsSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Throws");
                     var constraintExpressionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.ConstraintExpression");
 
-                    var op = semanticModel.GetOperation(arguments[1].Expression, cancellationToken)?.RemoveConversion();
+                    var op = semanticModel.GetOperation(arguments[1].Expression, cancellationToken)?.RemoveImplicitConversion();
                     if (op is not null)
                     {
                         if (method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean && Is(isSymbol, "True"))

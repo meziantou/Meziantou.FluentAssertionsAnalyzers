@@ -40,9 +40,9 @@ internal static class Extensions
         return false;
     }
 
-    public static IOperation RemoveConversion(this IOperation operation)
+    public static IOperation RemoveImplicitConversion(this IOperation operation)
     {
-        while (operation is IConversionOperation conversionOperation)
+        while (operation is IConversionOperation conversionOperation && conversionOperation.IsImplicit)
         {
             operation = conversionOperation.Operand;
         }

@@ -11,19 +11,19 @@ public sealed class BooleanShouldBeAnalyzerUnitTests
         return new ProjectBuilder()
             .WithTargetFramework(TargetFramework.Net6_0)
             .WithAnalyzer<BooleanShouldBeAnalyzer>()
+            .AddAllCodeFixers()
             .AddFluentAssertionsApi();
     }
 
     [Theory]
-    [InlineData(@"true.Should().Be(true)", @"true.Should().BeTrue()", typeof(BooleanShouldBeTrueCodeFixProvider))]
-    [InlineData(@"true.Should().NotBe(false)", @"true.Should().BeTrue()", typeof(BooleanShouldBeTrueCodeFixProvider))]
+    [InlineData(@"true.Should().Be(true)", @"true.Should().BeTrue()")]
+    [InlineData(@"true.Should().NotBe(false)", @"true.Should().BeTrue()")]
 
-    [InlineData(@"true.Should().Be(false)", @"true.Should().BeFalse()", typeof(BooleanShouldBeFalseCodeFixProvider))]
-    [InlineData(@"true.Should().NotBe(true)", @"true.Should().BeFalse()", typeof(BooleanShouldBeFalseCodeFixProvider))]
-    public Task Assert_Tests(string code, string fix, Type type)
+    [InlineData(@"true.Should().Be(false)", @"true.Should().BeFalse()")]
+    [InlineData(@"true.Should().NotBe(true)", @"true.Should().BeFalse()")]
+    public Task Assert_Tests(string code, string fix)
     {
         return CreateProjectBuilder()
-                  .WithCodeFixProvider(type)
                   .WithSourceCode($$"""
 using FluentAssertions;
 

@@ -24,7 +24,7 @@ public sealed partial class ProjectBuilder
             Assert.True(false, "DiagnosticAnalyzer is not configured");
         }
 
-        if (ExpectedFixedCode != null && CodeFixProvider == null)
+        if (ExpectedFixedCode != null && CodeFixProviders.Count == 0)
         {
             Assert.True(false, "CodeFixProvider is not configured");
         }
@@ -38,7 +38,7 @@ public sealed partial class ProjectBuilder
 
         if (ExpectedFixedCode != null)
         {
-            await VerifyFix(DiagnosticAnalyzer, CodeFixProvider, ExpectedFixedCode, CodeFixIndex).ConfigureAwait(false);
+            await VerifyFix(DiagnosticAnalyzer, CodeFixProviders, ExpectedFixedCode, CodeFixIndex).ConfigureAwait(false);
         }
     }
 
@@ -410,7 +410,7 @@ public sealed partial class ProjectBuilder
         return semanticModel.GetDiagnostics();
     }
 
-    private async Task VerifyFix(DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string newSource, int? codeFixIndex)
+    private async Task VerifyFix(DiagnosticAnalyzer analyzer, IEnumerable<CodeFixProvider> codeFixProviders, string newSource, int? codeFixIndex)
     {
         var project = await CreateProject().ConfigureAwait(false);
         var document = project.Documents.First();
@@ -420,10 +420,16 @@ public sealed partial class ProjectBuilder
         // Assert fixer is value
         foreach (var diagnostic in analyzerDiagnostics)
         {
-            if (!codeFixProvider.FixableDiagnosticIds.Any(id => string.Equals(diagnostic.Id, id, StringComparison.Ordinal)))
+            var hasFixer = false;
+            foreach (var codeFixProvider in codeFixProviders)
             {
-                Assert.True(false, "The CodeFixProvider is not valid for the DiagnosticAnalyzer");
+                if (!codeFixProvider.FixableDiagnosticIds.Contains(diagnostic.Id, StringComparer.Ordinal))
+                {
+                    hasFixer = true;
+                }
             }
+
+            Assert.True(hasFixer, $"The CodeFixProvider is not valid for the DiagnosticAnalyzer '{diagnostic.Id}'");
         }
 
         if (UseBatchFixer)
@@ -432,15 +438,20 @@ public sealed partial class ProjectBuilder
 
             var actions = new List<CodeAction>();
             var context = new CodeFixContext(document, diagnostic, (a, _) => actions.Add(a), CancellationToken.None);
-            await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+            foreach (var codeFixProvider in codeFixProviders.Where(fixer => fixer.FixableDiagnosticIds.Contains(diagnostic.Id, StringComparer.Ordinal)))
+            {
+                await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+            }
 
             if (actions.Count > 0)
             {
                 var action = actions[codeFixIndex ?? 0];
-                var fixAllContext = new FixAllContext(document, codeFixProvider, FixAllScope.Document, action.EquivalenceKey, analyzerDiagnostics.Select(d => d.Id).Distinct(StringComparer.Ordinal), new CustomDiagnosticProvider(analyzerDiagnostics), CancellationToken.None);
-                var fixes = await codeFixProvider.GetFixAllProvider().GetFixAsync(fixAllContext).ConfigureAwait(false);
-
-                document = await ApplyFix(document, fixes).ConfigureAwait(false);
+                foreach (var codeFixProvider in codeFixProviders.Where(fixer => fixer.FixableDiagnosticIds.Contains(diagnostic.Id, StringComparer.Ordinal)))
+                {
+                    var fixAllContext = new FixAllContext(document, codeFixProvider, FixAllScope.Document, action.EquivalenceKey, analyzerDiagnostics.Select(d => d.Id).Distinct(StringComparer.Ordinal), new CustomDiagnosticProvider(analyzerDiagnostics), CancellationToken.None);
+                    var fixes = await codeFixProvider.GetFixAllProvider().GetFixAsync(fixAllContext).ConfigureAwait(false);
+                    document = await ApplyFix(document, fixes).ConfigureAwait(false);
+                }
             }
         }
         else
@@ -450,7 +461,10 @@ public sealed partial class ProjectBuilder
                 var diagnostic = analyzerDiagnostics[0];
                 var actions = new List<CodeAction>();
                 var context = new CodeFixContext(document, diagnostic, (a, _) => actions.Add(a), CancellationToken.None);
-                await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+                foreach (var codeFixProvider in codeFixProviders.Where(fixer => fixer.FixableDiagnosticIds.Contains(diagnostic.Id, StringComparer.Ordinal)))
+                {
+                    await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+                }
 
                 if (actions.Count == 0)
                     break;

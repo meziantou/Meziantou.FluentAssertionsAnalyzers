@@ -11,7 +11,7 @@ public sealed class NUnitToFluentAssertionsAnalyzerUnitTests
         return new ProjectBuilder()
             .WithTargetFramework(TargetFramework.Net6_0)
             .WithAnalyzer<AssertAnalyzer>(id: "MFA003")
-            .WithCodeFixProvider<NunitAssertAnalyzerCodeFixProvider>()
+            .AddAllCodeFixers()
             .AddNUnitApi()
             .AddFluentAssertionsApi();
     }
@@ -551,5 +551,4 @@ class Test
 }
 """);
     }
-
 }

@@ -26,7 +26,7 @@ public sealed partial class ProjectBuilder
     public TargetFramework TargetFramework { get; private set; } = TargetFramework.NetStandard2_0;
     public IList<MetadataReference> References { get; } = new List<MetadataReference>();
     public DiagnosticAnalyzer DiagnosticAnalyzer { get; private set; }
-    public CodeFixProvider CodeFixProvider { get; private set; }
+    public IList<CodeFixProvider> CodeFixProviders { get; } = new List<CodeFixProvider>();
     public IList<DiagnosticResult> ExpectedDiagnosticResults { get; } = new List<DiagnosticResult>();
     public string ExpectedFixedCode { get; private set; }
     public int? CodeFixIndex { get; private set; }
@@ -109,6 +109,19 @@ public sealed partial class ProjectBuilder
     public ProjectBuilder WithSourceCode(string sourceCode)
     {
         return WithSourceCode(fileName: null, sourceCode);
+    }
+
+    public ProjectBuilder AddAllCodeFixers()
+    {
+        var fixers = DiagnosticAnalyzer.GetType().Assembly.GetTypes()
+            .Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(CodeFixProvider)));
+
+        foreach (var fixer in fixers)
+        {
+            AddCodeFixProvider(fixer);
+        }
+
+        return this;
     }
 
     public ProjectBuilder WithSourceCode(string fileName, string sourceCode)
@@ -223,7 +236,8 @@ public sealed partial class ProjectBuilder
 
     public ProjectBuilder WithCodeFixProvider(CodeFixProvider codeFixProvider)
     {
-        CodeFixProvider = codeFixProvider;
+        CodeFixProviders.Clear();
+        CodeFixProviders.Add(codeFixProvider);
         return this;
     }
 
@@ -235,6 +249,17 @@ public sealed partial class ProjectBuilder
     public ProjectBuilder WithCodeFixProvider(Type type)
     {
         return WithCodeFixProvider((CodeFixProvider)Activator.CreateInstance(type));
+    }
+
+    public ProjectBuilder AddCodeFixProvider(CodeFixProvider codeFixProvider)
+    {
+        CodeFixProviders.Add(codeFixProvider);
+        return this;
+    }
+
+    public ProjectBuilder AddCodeFixProvider(Type type)
+    {
+        return AddCodeFixProvider((CodeFixProvider)Activator.CreateInstance(type));
     }
 
     private ProjectBuilder ShouldReportDiagnostic(params DiagnosticResult[] expectedDiagnosticResults)

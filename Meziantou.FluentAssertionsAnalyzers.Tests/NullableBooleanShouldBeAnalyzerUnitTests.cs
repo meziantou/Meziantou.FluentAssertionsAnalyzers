@@ -4,23 +4,26 @@ using Xunit;
 
 namespace Meziantou.FluentAssertionsAnalyzers.Tests;
 
-public sealed class StringShouldBeAnalyzerUnitTests
+public sealed class NullableBooleanShouldBeAnalyzerUnitTests
 {
     private static ProjectBuilder CreateProjectBuilder()
     {
         return new ProjectBuilder()
             .WithTargetFramework(TargetFramework.Net6_0)
-            .WithAnalyzer<StringShouldBeAnalyzer>()
+            .WithAnalyzer<NullableBooleanShouldBeAnalyzer>()
             .AddAllCodeFixers()
             .AddFluentAssertionsApi();
     }
 
     [Theory]
-    [InlineData(@""""".Should().Be("""")", @""""".Should().BeEmpty()")]
-    [InlineData(@""""".Should().Be(string.Empty)", @""""".Should().BeEmpty()")]
+    [InlineData(@"subject.Should().Be(null)", @"subject.Should().NotHaveValue()")]
+    [InlineData(@"subject.Should().NotBe(null)", @"subject.Should().HaveValue()")]
 
-    [InlineData(@""""".Should().NotBe("""")", @""""".Should().NotBeEmpty()")]
-    [InlineData(@""""".Should().NotBe(string.Empty)", @""""".Should().NotBeEmpty()")]
+    [InlineData(@"subject.Should().Be(false)", @"subject.Should().BeFalse()")]
+    [InlineData(@"subject.Should().Be(true)", @"subject.Should().BeTrue()")]
+
+    [InlineData(@"subject.Should().NotBe(false)", @"subject.Should().NotBeFalse()")]
+    [InlineData(@"subject.Should().NotBe(true)", @"subject.Should().NotBeTrue()")]
     public Task Assert_Tests(string code, string fix)
     {
         return CreateProjectBuilder()
@@ -31,7 +34,7 @@ class Test
 {
     public void MyTest()
     {
-        var collection = new int[1];
+        bool? subject = false;
         [|{{code}}|];
     }
 }
@@ -43,7 +46,7 @@ class Test
 {
     public void MyTest()
     {
-        var collection = new int[1];
+        bool? subject = false;
         {{fix}};
     }
 }
