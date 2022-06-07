@@ -52,15 +52,19 @@ public sealed class BooleanShouldBeAnalyzer : DiagnosticAnalyzer
         var booleanAssertionsFullSymbol = booleanAssertionsOfTSymbol.Construct(booleanAssertionsSymbol);
 
         var op = (IInvocationOperation)context.Operation;
-        if (op.TargetMethod.Name == "Be" && op.TargetMethod.ContainingType.Equals(booleanAssertionsFullSymbol, SymbolEqualityComparer.Default) && op.Arguments.Length >= 1 && op.Arguments[0].Value.ConstantValue.HasValue && op.Arguments[0].Value.ConstantValue.Value is bool constant)
+        if (op.TargetMethod.Name is "Be" or "NotBe" && op.TargetMethod.ContainingType.Equals(booleanAssertionsFullSymbol, SymbolEqualityComparer.Default) && op.Arguments.Length >= 1 && op.Arguments[0].Value.ConstantValue.HasValue && op.Arguments[0].Value.ConstantValue.Value is bool constant)
         {
-            if (constant)
+            switch ((op.TargetMethod.Name, constant))
             {
-                context.ReportDiagnostic(Diagnostic.Create(ShouldBeTrueRule, op.Syntax.GetLocation()));
-            }
-            else
-            {
-                context.ReportDiagnostic(Diagnostic.Create(ShouldBeFalseRule, op.Syntax.GetLocation()));
+                case ("Be", false):
+                case ("NotBe", true):
+                    context.ReportDiagnostic(Diagnostic.Create(ShouldBeFalseRule, op.Syntax.GetLocation()));
+                    break;
+
+                case ("Be", true):
+                case ("NotBe", false):
+                    context.ReportDiagnostic(Diagnostic.Create(ShouldBeTrueRule, op.Syntax.GetLocation()));
+                    break;
             }
         }
     }

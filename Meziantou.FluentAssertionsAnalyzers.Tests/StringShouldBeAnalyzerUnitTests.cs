@@ -4,22 +4,22 @@ using Xunit;
 
 namespace Meziantou.FluentAssertionsAnalyzers.Tests;
 
-public sealed class BooleanShouldBeAnalyzerUnitTests
+public sealed class StringShouldBeAnalyzerUnitTests
 {
     private static ProjectBuilder CreateProjectBuilder()
     {
         return new ProjectBuilder()
             .WithTargetFramework(TargetFramework.Net6_0)
-            .WithAnalyzer<BooleanShouldBeAnalyzer>()
+            .WithAnalyzer<StringShouldBeAnalyzer>()
             .AddFluentAssertionsApi();
     }
 
     [Theory]
-    [InlineData(@"true.Should().Be(true)", @"true.Should().BeTrue()", typeof(BooleanShouldBeTrueCodeFixProvider))]
-    [InlineData(@"true.Should().NotBe(false)", @"true.Should().BeTrue()", typeof(BooleanShouldBeTrueCodeFixProvider))]
+    [InlineData(@""""".Should().Be("""")", @""""".Should().BeEmpty()", typeof(StringShouldBeEmptyCodeFixProvider))]
+    [InlineData(@""""".Should().Be(string.Empty)", @""""".Should().BeEmpty()", typeof(StringShouldBeEmptyCodeFixProvider))]
 
-    [InlineData(@"true.Should().Be(false)", @"true.Should().BeFalse()", typeof(BooleanShouldBeFalseCodeFixProvider))]
-    [InlineData(@"true.Should().NotBe(true)", @"true.Should().BeFalse()", typeof(BooleanShouldBeFalseCodeFixProvider))]
+    [InlineData(@""""".Should().NotBe("""")", @""""".Should().NotBeEmpty()", typeof(StringShouldNotBeEmptyCodeFixProvider))]
+    [InlineData(@""""".Should().NotBe(string.Empty)", @""""".Should().NotBeEmpty()", typeof(StringShouldNotBeEmptyCodeFixProvider))]
     public Task Assert_Tests(string code, string fix, Type type)
     {
         return CreateProjectBuilder()
