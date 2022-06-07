@@ -394,6 +394,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                     var isSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Is");
                     var hasSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Has");
                     var doesSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Does");
+                    var throwsSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Throws");
                     var constraintExpressionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.ConstraintExpression");
 
                     var op = semanticModel.GetOperation(arguments[1].Expression, cancellationToken)?.RemoveConversion();
@@ -483,6 +484,18 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = RewriteUsingShould(arguments[0], "NotStartWith", ArgumentList(expected, arguments.Skip(2)));
                         }
+                        else if (IsMethod(out expected, throwsSymbol, "InstanceOf") && semanticModel.GetOperation(expected, cancellationToken) is ITypeOfOperation typeOfOperation)
+                        {
+                            var action = InvokeFluentActionsInvoking(compilation, generator, arguments[0].Expression);
+                            var exception = (TypeSyntax)generator.TypeExpression(typeOfOperation.TypeOperand);
+                            result = RewriteUsingShould(action, "Throw", exception, arguments.Skip(2));
+                        }
+                        else if (IsGenericMethod(out var type, throwsSymbol, "InstanceOf"))
+                        {
+                            var action = InvokeFluentActionsInvoking(compilation, generator, arguments[0].Expression);
+                            var exception = (TypeSyntax)generator.TypeExpression(type);
+                            result = RewriteUsingShould(action, "Throw", exception, arguments.Skip(2));
+                        }
                     }
 
                     bool Is(ITypeSymbol root, params string[] memberNames)
@@ -524,6 +537,49 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                                     return false;
 
                                 argument = (ExpressionSyntax)invocation.Arguments[0].Value.Syntax;
+
+                                if (i == 0)
+                                    return SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, root);
+
+                                currentOp = invocation.Instance;
+                            }
+                            else
+                            {
+                                if (currentOp is not IMemberReferenceOperation member)
+                                    return false;
+
+                                if (member.Member.Name != memberNames[i])
+                                    return false;
+
+                                if (i == 0)
+                                    return SymbolEqualityComparer.Default.Equals(member.Member.ContainingType, root);
+
+                                if (member.Instance == null)
+                                    break;
+
+                                currentOp = member.Instance;
+                            }
+                        }
+
+                        return false;
+                    }
+
+                    bool IsGenericMethod(out ITypeSymbol typeArgument, ITypeSymbol root, params string[] memberNames)
+                    {
+                        typeArgument = null;
+
+                        var currentOp = op;
+                        for (var i = memberNames.Length - 1; i >= 0; i--)
+                        {
+                            if (currentOp is IInvocationOperation invocation)
+                            {
+                                if (typeArgument != null || invocation.TargetMethod.TypeArguments.Length == 0)
+                                    return false;
+
+                                if (invocation.TargetMethod.Name != memberNames[i])
+                                    return false;
+
+                                typeArgument = invocation.TargetMethod.TypeArguments[0];
 
                                 if (i == 0)
                                     return SymbolEqualityComparer.Default.Equals(invocation.TargetMethod.ContainingType, root);

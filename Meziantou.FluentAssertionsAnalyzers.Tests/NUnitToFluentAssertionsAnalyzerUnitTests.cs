@@ -518,6 +518,10 @@ class Test
     [InlineData(@"Assert.That("""", Does.Not.StartWith(""expected""))", @""""".Should().NotStartWith(""expected"")")]
 
     [InlineData(@"Assert.That("""", Does.Not.StartsWith(""expected""))", @""""".Should().NotStartWith(""expected"")")]
+
+    [InlineData(@"Assert.That(() => { }, Throws.InstanceOf(typeof(System.ArgumentException)))", @"FluentActions.Invoking(() => { }).Should().Throw<System.ArgumentException>()")]
+    [InlineData(@"Assert.That(() => { }, Throws.InstanceOf<System.ArgumentException>())", @"FluentActions.Invoking(() => { }).Should().Throw<System.ArgumentException>()")]
+
     public Task Assert_Tests(string code, string fix)
     {
         return Assert(
