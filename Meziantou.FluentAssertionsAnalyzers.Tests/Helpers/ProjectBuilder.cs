@@ -232,6 +232,11 @@ public sealed partial class ProjectBuilder
         return WithCodeFixProvider(new T());
     }
 
+    public ProjectBuilder WithCodeFixProvider(Type type)
+    {
+        return WithCodeFixProvider((CodeFixProvider)Activator.CreateInstance(type));
+    }
+
     private ProjectBuilder ShouldReportDiagnostic(params DiagnosticResult[] expectedDiagnosticResults)
     {
         foreach (var diagnostic in expectedDiagnosticResults)
