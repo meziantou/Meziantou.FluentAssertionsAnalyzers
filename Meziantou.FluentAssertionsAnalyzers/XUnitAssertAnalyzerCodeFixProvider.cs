@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -28,11 +27,11 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
         if (nodeToFix == null)
             return;
 
-        const string title = "Use FluentAssertions";
+        const string Title = "Use FluentAssertions";
         var codeAction = CodeAction.Create(
-            title,
-            _ => Rewrite(context.Document, nodeToFix, context.CancellationToken),
-            equivalenceKey: title);
+            Title,
+            cancellationToken  => Rewrite(context.Document, nodeToFix, cancellationToken ),
+            equivalenceKey: Title);
 
         context.RegisterCodeFix(codeAction, context.Diagnostics);
     }
@@ -153,7 +152,7 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
                 MemberAccessExpression(InvokeShould(originalArguments[1]), newMethodName),
                 ArgumentList(originalMethod.ArgumentList.Arguments[0].Expression, originalMethod.ArgumentList.Arguments[2].Expression));
         }
-        else if (methodName is "Equal" or "NotEqual" && method.Parameters.Length == 3 && method.Parameters[2].Type.Name == nameof(IEqualityComparer))
+        else if (methodName is "Equal" or "NotEqual" && method.Parameters.Length == 3 && method.Parameters[2].Type.Equals(compilation,  "System.Collections.Generic.IEqualityComparer`1"))
         {
             var newMethodName = methodName is "Equal" ? "BeEquivalentTo" : "NotBeEquivalentTo";
 
