@@ -512,6 +512,123 @@ class Test
 }
 ");
     }
+    [Fact]
+    public Task Assert_Equal_T_T_IEqualityComparerOfT()
+    {
+        return Assert(@"
+using Xunit;
+using FluentAssertions;
+using System.Collections.Generic;
+
+public class TestObject
+{
+	private sealed class NameEqualityComparer : IEqualityComparer<TestObject>
+	{
+		public bool Equals(TestObject x, TestObject y)
+		{
+			if (ReferenceEquals(x, y))
+			{
+				return true;
+			}
+
+			if (ReferenceEquals(x, null))
+			{
+				return false;
+			}
+
+			if (ReferenceEquals(y, null))
+			{
+				return false;
+			}
+
+			if (x.GetType() != y.GetType())
+			{
+				return false;
+			}
+
+			return x.Name == y.Name;
+		}
+
+		public int GetHashCode(TestObject obj)
+		{
+			return obj.Name != null
+				? obj.Name.GetHashCode()
+				: 0;
+		}
+	}
+
+	public static IEqualityComparer<TestObject> NameComparer { get; } = new NameEqualityComparer();
+
+	public string Name { get; set; }
+}
+
+class Test
+{
+    public void MyTest()
+    {
+        var obj = new TestObject();
+        var expected = new TestObject();
+        [|Assert.Equal(expected, obj, TestObject.NameComparer)|];
+    }
+}
+", @"
+using Xunit;
+using FluentAssertions;
+using System.Collections.Generic;
+
+public class TestObject
+{
+	private sealed class NameEqualityComparer : IEqualityComparer<TestObject>
+	{
+		public bool Equals(TestObject x, TestObject y)
+		{
+			if (ReferenceEquals(x, y))
+			{
+				return true;
+			}
+
+			if (ReferenceEquals(x, null))
+			{
+				return false;
+			}
+
+			if (ReferenceEquals(y, null))
+			{
+				return false;
+			}
+
+			if (x.GetType() != y.GetType())
+			{
+				return false;
+			}
+
+			return x.Name == y.Name;
+		}
+
+		public int GetHashCode(TestObject obj)
+		{
+			return obj.Name != null
+				? obj.Name.GetHashCode()
+				: 0;
+		}
+	}
+
+	public static IEqualityComparer<TestObject> NameComparer { get; } = new NameEqualityComparer();
+
+	public string Name { get; set; }
+}
+
+class Test
+{
+    public void MyTest()
+    {
+        var obj = new TestObject();
+        var expected = new TestObject();
+        obj.Should().BeEquivalentTo(expected, options => options.Using(TestObject.NameComparer));
+    }
+}
+");
+    }
 
     [Fact]
     public Task Assert_Equal_String_String()
