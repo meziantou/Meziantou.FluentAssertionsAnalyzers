@@ -30,7 +30,7 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
         const string Title = "Use FluentAssertions";
         var codeAction = CodeAction.Create(
             Title,
-            cancellationToken  => Rewrite(context.Document, nodeToFix, cancellationToken ),
+            cancellationToken => Rewrite(context.Document, nodeToFix, cancellationToken),
             equivalenceKey: Title);
 
         context.RegisterCodeFix(codeAction, context.Diagnostics);
