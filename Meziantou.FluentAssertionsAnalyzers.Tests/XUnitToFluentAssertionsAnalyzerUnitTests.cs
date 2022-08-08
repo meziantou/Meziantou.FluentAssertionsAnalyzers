@@ -524,37 +524,9 @@ public class TestObject
 {
 	private sealed class NameEqualityComparer : IEqualityComparer<TestObject>
 	{
-		public bool Equals(TestObject x, TestObject y)
-		{
-			if (ReferenceEquals(x, y))
-			{
-				return true;
-			}
+		public bool Equals(TestObject x, TestObject y) => throw null;
 
-			if (ReferenceEquals(x, null))
-			{
-				return false;
-			}
-
-			if (ReferenceEquals(y, null))
-			{
-				return false;
-			}
-
-			if (x.GetType() != y.GetType())
-			{
-				return false;
-			}
-
-			return x.Name == y.Name;
-		}
-
-		public int GetHashCode(TestObject obj)
-		{
-			return obj.Name != null
-				? obj.Name.GetHashCode()
-				: 0;
-		}
+		public int GetHashCode(TestObject obj) => throw null;
 	}
 
 	public static IEqualityComparer<TestObject> NameComparer { get; } = new NameEqualityComparer();
@@ -580,37 +552,9 @@ public class TestObject
 {
 	private sealed class NameEqualityComparer : IEqualityComparer<TestObject>
 	{
-		public bool Equals(TestObject x, TestObject y)
-		{
-			if (ReferenceEquals(x, y))
-			{
-				return true;
-			}
+		public bool Equals(TestObject x, TestObject y) => throw null;
 
-			if (ReferenceEquals(x, null))
-			{
-				return false;
-			}
-
-			if (ReferenceEquals(y, null))
-			{
-				return false;
-			}
-
-			if (x.GetType() != y.GetType())
-			{
-				return false;
-			}
-
-			return x.Name == y.Name;
-		}
-
-		public int GetHashCode(TestObject obj)
-		{
-			return obj.Name != null
-				? obj.Name.GetHashCode()
-				: 0;
-		}
+		public int GetHashCode(TestObject obj) => throw null;
 	}
 
 	public static IEqualityComparer<TestObject> NameComparer { get; } = new NameEqualityComparer();

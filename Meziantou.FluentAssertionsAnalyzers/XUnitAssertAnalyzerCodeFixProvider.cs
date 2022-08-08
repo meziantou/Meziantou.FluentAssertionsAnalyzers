@@ -152,7 +152,7 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
                 MemberAccessExpression(InvokeShould(originalArguments[1]), newMethodName),
                 ArgumentList(originalMethod.ArgumentList.Arguments[0].Expression, originalMethod.ArgumentList.Arguments[2].Expression));
         }
-        else if (methodName is "Equal" or "NotEqual" && method.Parameters.Length == 3 && method.Parameters[2].Type.Equals(compilation,  "System.Collections.Generic.IEqualityComparer`1"))
+        else if (methodName is "Equal" or "NotEqual" && method.Parameters.Length == 3 &&  method.Parameters[2].Type.OriginalDefinition.IsOrImplements(compilation, "System.Collections.Generic.IEqualityComparer`1"))
         {
             var newMethodName = methodName is "Equal" ? "BeEquivalentTo" : "NotBeEquivalentTo";
 
