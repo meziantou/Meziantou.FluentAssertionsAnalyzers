@@ -27,11 +27,11 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
         if (nodeToFix == null)
             return;
 
-        var title = "Use FluentAssertions";
+        const string Title = "Use FluentAssertions";
         var codeAction = CodeAction.Create(
-            title,
-            ct => Rewrite(context.Document, nodeToFix, context.CancellationToken),
-            equivalenceKey: title);
+            Title,
+            cancellationToken => Rewrite(context.Document, nodeToFix, cancellationToken),
+            equivalenceKey: Title);
 
         context.RegisterCodeFix(codeAction, context.Diagnostics);
     }
@@ -151,6 +151,17 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
             result = InvocationExpression(
                 MemberAccessExpression(InvokeShould(originalArguments[1]), newMethodName),
                 ArgumentList(originalMethod.ArgumentList.Arguments[0].Expression, originalMethod.ArgumentList.Arguments[2].Expression));
+        }
+        else if (methodName is "Equal" or "NotEqual" && method.Parameters.Length == 3 &&  method.Parameters[2].Type.OriginalDefinition.IsOrImplements(compilation, "System.Collections.Generic.IEqualityComparer`1"))
+        {
+            var newMethodName = methodName is "Equal" ? "BeEquivalentTo" : "NotBeEquivalentTo";
+
+            var equivalencyAssertionOptionsExpression = SimpleLambdaExpression(Parameter(Identifier("options")), 
+                InvocationExpression(MemberAccessExpression("options", "Using"),
+                    ArgumentList(originalArguments[2].Expression)));
+            result = InvocationExpression(
+                MemberAccessExpression(InvokeShould(originalArguments[1]), newMethodName),
+                ArgumentList(originalArguments[0].Expression, equivalencyAssertionOptionsExpression));
         }
         else if (methodName is "Same")
         {
