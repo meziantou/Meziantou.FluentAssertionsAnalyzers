@@ -30,7 +30,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var title = "Use FluentAssertions";
         var codeAction = CodeAction.Create(
             title,
-            ct => Rewrite(context.Document, nodeToFix, context.CancellationToken),
+            ct => Rewrite(context.Document, nodeToFix, ct),
             equivalenceKey: title);
 
         context.RegisterCodeFix(codeAction, context.Diagnostics);

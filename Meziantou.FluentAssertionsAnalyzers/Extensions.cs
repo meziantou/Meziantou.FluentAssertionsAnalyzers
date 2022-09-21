@@ -7,11 +7,17 @@ internal static class Extensions
 {
     public static bool Equals(this ITypeSymbol symbol, Compilation compilation, string type)
     {
+        if(symbol == null)
+            return false;
+
         return symbol.Equals(compilation.GetTypeByMetadataName(type), SymbolEqualityComparer.Default);
     }
 
     public static bool IsOrImplements(this ITypeSymbol symbol, Compilation compilation, string type)
     {
+        if (symbol == null)
+            return false;
+
         var otherSymbol = compilation.GetTypeByMetadataName(type);
         if (symbol.Equals(otherSymbol, SymbolEqualityComparer.Default))
             return true;
@@ -27,7 +33,12 @@ internal static class Extensions
 
     public static bool IsOrInheritsFrom(this ITypeSymbol symbol, Compilation compilation, string type)
     {
+        if (symbol == null)
+            return false;
+
         var otherSymbol = compilation.GetTypeByMetadataName(type);
+        if (otherSymbol == null)
+            return false;
 
         do
         {

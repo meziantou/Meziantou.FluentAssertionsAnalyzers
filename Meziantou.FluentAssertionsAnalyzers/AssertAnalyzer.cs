@@ -57,6 +57,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
                 ctx.RegisterOperationAction(AnalyzeMsTestInvocation, OperationKind.Invocation);
                 ctx.RegisterOperationAction(AnalyzeMsTestThrow, OperationKind.Throw);
             }
+
             if (ctx.Compilation.GetTypeByMetadataName("NUnit.Framework.AssertionException") is not null)
             {
                 ctx.RegisterOperationAction(AnalyzeNunitInvocation, OperationKind.Invocation);
@@ -112,6 +113,9 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
 
     private static bool IsMsTestAssertClass(Compilation compilation, ITypeSymbol typeSymbol)
     {
+        if (typeSymbol == null)
+            return false;
+
         return typeSymbol.Equals(compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.Assert"), SymbolEqualityComparer.Default)
             || typeSymbol.Equals(compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.StringAssert"), SymbolEqualityComparer.Default)
             || typeSymbol.Equals(compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.CollectionAssert"), SymbolEqualityComparer.Default);
@@ -119,6 +123,9 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
 
     private static bool IsNunitAssertClass(Compilation compilation, ITypeSymbol typeSymbol)
     {
+        if (typeSymbol == null)
+            return false;
+
         return typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.Assert"), SymbolEqualityComparer.Default)
             || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.CollectionAssert"), SymbolEqualityComparer.Default)
             || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.DirectoryAssert"), SymbolEqualityComparer.Default)
