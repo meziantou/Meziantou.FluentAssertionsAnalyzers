@@ -51,6 +51,30 @@ class Test
 }
 """);
     }
+    
+    [Fact]
+    public Task Rethrow()
+    {
+        return CreateProjectBuilder()
+          .WithSourceCode("""
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        try
+        {
+        }
+        catch
+        {
+	        throw;
+        }
+    }
+}
+""")
+          .ValidateAsync();
+    }
 
     [Theory]
 

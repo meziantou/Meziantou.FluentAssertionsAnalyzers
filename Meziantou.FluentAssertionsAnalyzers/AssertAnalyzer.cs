@@ -87,7 +87,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
     private void AnalyzeMsTestThrow(OperationAnalysisContext context)
     {
         var op = (IThrowOperation)context.Operation;
-        if (op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(context.Compilation, "Microsoft.VisualStudio.TestTools.UnitTesting.UnitTestAssertException"))
+        if (op.Exception != null && op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(context.Compilation, "Microsoft.VisualStudio.TestTools.UnitTesting.UnitTestAssertException"))
         {
             context.ReportDiagnostic(Diagnostic.Create(MSTestsRule, op.Syntax.GetLocation()));
         }
@@ -105,7 +105,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
     private void AnalyzeNunitThrow(OperationAnalysisContext context)
     {
         var op = (IThrowOperation)context.Operation;
-        if (op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(context.Compilation, "NUnit.Framework.ResultStateException"))
+        if (op.Exception != null && op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(context.Compilation, "NUnit.Framework.ResultStateException"))
         {
             context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
         }
