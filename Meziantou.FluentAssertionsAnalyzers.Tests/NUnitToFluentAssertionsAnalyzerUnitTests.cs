@@ -16,6 +16,44 @@ public sealed class NUnitToFluentAssertionsAnalyzerUnitTests
             .AddFluentAssertionsApi();
     }
 
+    [Fact]
+    public async Task FixDocumentWithMultipleDiagnostics()
+    {
+        var test = @"
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        var value = false;
+        [|Assert.True(value)|];
+        [|Assert.False(value)|];
+    }
+}
+";
+        var fix = @"
+using FluentAssertions;
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        var value = false;
+        value.Should().BeTrue();
+        value.Should().BeFalse();
+    }
+}
+";
+
+        await CreateProjectBuilder()
+                .WithSourceCode(test)
+                .ShouldFixCodeWith(fix)
+                .ShouldBatchFixCodeWith(fix)
+                .ValidateAsync();
+    }
+
     private static Task Assert(string sourceCode, string fix)
     {
         return CreateProjectBuilder()
