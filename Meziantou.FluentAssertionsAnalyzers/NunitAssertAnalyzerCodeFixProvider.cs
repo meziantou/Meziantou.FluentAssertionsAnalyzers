@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
+using Meziantou.FluentAssertionsAnalyzers.Internals;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,7 +19,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("MFA003");
 
-    public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+    public override FixAllProvider GetFixAllProvider() => NunitAssertAnalyzerCodeFixAllProvider.Instance;
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -854,5 +855,37 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var withoutTrivia = expression.WithoutTrivia();
         var parenthesized = ParenthesizedExpression(withoutTrivia);
         return parenthesized.WithTriviaFrom(expression).WithAdditionalAnnotations(Simplifier.Annotation);
+    }
+
+    internal sealed class NunitAssertAnalyzerCodeFixAllProvider : DocumentBasedFixAllProvider
+    {
+        public static NunitAssertAnalyzerCodeFixAllProvider Instance { get; } = new NunitAssertAnalyzerCodeFixAllProvider();
+
+        protected override string CodeActionTitle => "Use FluentAssertions";
+
+        /// <inheritdoc/>
+        protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+        {
+            if (diagnostics.IsEmpty)
+                return null;
+
+            var newDocument = await Rewrite(document, diagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
+            return await newDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Document> Rewrite(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var nodeToFix = root?.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+                if (nodeToFix == null)
+                    continue;
+
+                document = await NunitAssertAnalyzerCodeFixProvider.Rewrite(document, nodeToFix, cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
+        }
     }
 }
