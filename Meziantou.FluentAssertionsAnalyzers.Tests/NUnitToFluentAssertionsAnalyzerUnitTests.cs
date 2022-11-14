@@ -229,9 +229,17 @@ class Test
     [InlineData(@"Assert.IsInstanceOf(typeof(string), """", ""because"")", @""""".Should().BeOfType(typeof(string), ""because"")")]
     [InlineData(@"Assert.IsInstanceOf(typeof(string), """", ""because"", 1, 2)", @""""".Should().BeOfType(typeof(string), ""because"", 1, 2)")]
 
+    [InlineData(@"Assert.That("""", Is.InstanceOf(typeof(string)))", @""""".Should().BeOfType(typeof(string))")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf(typeof(string)), ""because"")", @""""".Should().BeOfType(typeof(string), ""because"")")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf(typeof(string)), ""because"", 1, 2)", @""""".Should().BeOfType(typeof(string), ""because"", 1, 2)")]
+
     [InlineData(@"Assert.IsInstanceOf<string>("""")", @""""".Should().BeOfType<string>()")]
     [InlineData(@"Assert.IsInstanceOf<string>("""", ""because"")", @""""".Should().BeOfType<string>(""because"")")]
     [InlineData(@"Assert.IsInstanceOf<string>("""", ""because"", 1, 2)", @""""".Should().BeOfType<string>(""because"", 1, 2)")]
+
+    [InlineData(@"Assert.That("""", Is.InstanceOf<string>())", @""""".Should().BeOfType<string>()")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf<string>(), ""because"")", @""""".Should().BeOfType<string>(""because"")")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf<string>(), ""because"", 1, 2)", @""""".Should().BeOfType<string>(""because"", 1, 2)")]
 
     [InlineData(@"Assert.IsNotInstanceOf(typeof(string), """")", @""""".Should().NotBeOfType(typeof(string))")]
     [InlineData(@"Assert.IsNotInstanceOf(typeof(string), """", ""because"")", @""""".Should().NotBeOfType(typeof(string), ""because"")")]

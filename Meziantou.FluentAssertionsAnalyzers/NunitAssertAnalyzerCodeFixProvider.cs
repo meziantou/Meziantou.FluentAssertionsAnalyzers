@@ -511,6 +511,15 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = RewriteUsingShould(arguments[0], "NotStartWith", ArgumentList(expected, arguments.Skip(2)));
                         }
+                        else if (IsMethod(out expected, isSymbol, "InstanceOf"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeOfType", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsGenericMethod(out var instanceOfType, isSymbol, "InstanceOf"))
+                        {
+                            var exception = (TypeSyntax)generator.TypeExpression(instanceOfType);
+                            result = RewriteUsingShould(arguments[0], "BeOfType", exception, arguments.Skip(2));
+                        }
                         else if (IsMethod(out expected, throwsSymbol, "InstanceOf") && semanticModel.GetOperation(expected, cancellationToken) is ITypeOfOperation typeOfOperation)
                         {
                             var action = InvokeFluentActionsInvoking(compilation, generator, arguments[0].Expression);
