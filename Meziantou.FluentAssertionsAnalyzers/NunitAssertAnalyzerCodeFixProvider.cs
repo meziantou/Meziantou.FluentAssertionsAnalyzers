@@ -389,7 +389,11 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             }
             else if (methodName is "That")
             {
-                if (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(resolveConstraintSymbol, SymbolEqualityComparer.Default))
+                if (method.Parameters.Length == 1)
+                {
+                    result = RewriteUsingShould(arguments[0], "BeTrue", Array.Empty<ArgumentSyntax>());
+                }
+                else if (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(resolveConstraintSymbol, SymbolEqualityComparer.Default))
                 {
                     var isSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Is");
                     var hasSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Has");
