@@ -546,6 +546,7 @@ class Test
     [InlineData(@"Assert.That(collection, Has.Count.Zero)", @"collection.Should().BeEmpty()")]
     [InlineData(@"Assert.That(collection, Has.Length.Zero)", @"collection.Should().BeEmpty()")]
     [InlineData(@"Assert.That(collection, Has.Count.EqualTo(2))", @"collection.Should().HaveCount(2)")]
+    [InlineData(@"Assert.That(collection, Has.Length.EqualTo(2))", @"collection.Should().HaveCount(2)")]
 
     [InlineData(@"Assert.That("""", Is.EqualTo(""expected""))", @""""".Should().Be(""expected"")")]
     [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected""))", @""""".Should().NotBe(""expected"")")]
