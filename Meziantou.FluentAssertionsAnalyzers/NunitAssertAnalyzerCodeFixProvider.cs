@@ -468,6 +468,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(NumericLiteral(1), arguments.Skip(2)));
                         }
+                        else if (Is(hasSymbol, "Count", "Zero") || Is(hasSymbol, "Length", "Zero"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeEmpty", arguments.Skip(2));
+                        }
                         else if (IsMethod(out var expected, isSymbol, "EqualTo"))
                         {
                             result = RewriteUsingShould(arguments[0], "Be", ArgumentList(expected, arguments.Skip(2)));
