@@ -398,6 +398,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                     var isSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Is");
                     var hasSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Has");
                     var doesSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Does");
+                    var containsSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Contains");
                     var throwsSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Throws");
                     var constraintExpressionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.ConstraintExpression");
 
@@ -481,6 +482,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         else if (IsMethod(out expected, hasSymbol, "Exactly", "Items"))
                         {
                             result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, containsSymbol, "Substring"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "Contain", ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, doesSymbol, "Contain"))
                         {
