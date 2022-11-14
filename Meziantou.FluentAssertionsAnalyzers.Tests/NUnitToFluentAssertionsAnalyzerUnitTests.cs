@@ -229,9 +229,17 @@ class Test
     [InlineData(@"Assert.IsInstanceOf(typeof(string), """", ""because"")", @""""".Should().BeOfType(typeof(string), ""because"")")]
     [InlineData(@"Assert.IsInstanceOf(typeof(string), """", ""because"", 1, 2)", @""""".Should().BeOfType(typeof(string), ""because"", 1, 2)")]
 
+    [InlineData(@"Assert.That("""", Is.InstanceOf(typeof(string)))", @""""".Should().BeOfType(typeof(string))")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf(typeof(string)), ""because"")", @""""".Should().BeOfType(typeof(string), ""because"")")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf(typeof(string)), ""because"", 1, 2)", @""""".Should().BeOfType(typeof(string), ""because"", 1, 2)")]
+
     [InlineData(@"Assert.IsInstanceOf<string>("""")", @""""".Should().BeOfType<string>()")]
     [InlineData(@"Assert.IsInstanceOf<string>("""", ""because"")", @""""".Should().BeOfType<string>(""because"")")]
     [InlineData(@"Assert.IsInstanceOf<string>("""", ""because"", 1, 2)", @""""".Should().BeOfType<string>(""because"", 1, 2)")]
+
+    [InlineData(@"Assert.That("""", Is.InstanceOf<string>())", @""""".Should().BeOfType<string>()")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf<string>(), ""because"")", @""""".Should().BeOfType<string>(""because"")")]
+    [InlineData(@"Assert.That("""", Is.InstanceOf<string>(), ""because"", 1, 2)", @""""".Should().BeOfType<string>(""because"", 1, 2)")]
 
     [InlineData(@"Assert.IsNotInstanceOf(typeof(string), """")", @""""".Should().NotBeOfType(typeof(string))")]
     [InlineData(@"Assert.IsNotInstanceOf(typeof(string), """", ""because"")", @""""".Should().NotBeOfType(typeof(string), ""because"")")]
@@ -508,6 +516,10 @@ class Test
     [InlineData(@"Assert.That(false, Is.True)", @"false.Should().BeTrue()")]
     [InlineData(@"Assert.That(false, Is.False)", @"false.Should().BeFalse()")]
 
+    [InlineData(@"Assert.That(true)", @"true.Should().BeTrue()")]
+    [InlineData(@"Assert.That(true, ""because"")", @"true.Should().BeTrue(""because"")")]
+    [InlineData(@"Assert.That(true, ""because"", 1, 2)", @"true.Should().BeTrue(""because"", 1, 2)")]
+
     [InlineData(@"Assert.That((bool?)false, Is.True)", @"((bool?)false).Should().BeTrue()")]
     [InlineData(@"Assert.That((bool?)false, Is.False)", @"((bool?)false).Should().BeFalse()")]
 
@@ -531,13 +543,17 @@ class Test
     [InlineData(@"Assert.That("""", Is.Not.Null.Or.Empty)", @""""".Should().NotBeNullOrEmpty()")]
 
     [InlineData(@"Assert.That(collection, Has.One.Items)", @"collection.Should().HaveCount(1)")]
+    [InlineData(@"Assert.That(collection, Has.Count.Zero)", @"collection.Should().BeEmpty()")]
+    [InlineData(@"Assert.That(collection, Has.Length.Zero)", @"collection.Should().BeEmpty()")]
     [InlineData(@"Assert.That(collection, Has.Count.EqualTo(2))", @"collection.Should().HaveCount(2)")]
+    [InlineData(@"Assert.That(collection, Has.Length.EqualTo(2))", @"collection.Should().HaveCount(2)")]
 
     [InlineData(@"Assert.That("""", Is.EqualTo(""expected""))", @""""".Should().Be(""expected"")")]
     [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected""))", @""""".Should().NotBe(""expected"")")]
 
     [InlineData(@"Assert.That("""", Does.Contain(""expected""))", @""""".Should().Contain(""expected"")")]
     [InlineData(@"Assert.That("""", Does.Not.Contain(""expected""))", @""""".Should().NotContain(""expected"")")]
+    [InlineData(@"Assert.That("""", Contains.Substring(""expected""))", @""""".Should().Contain(""expected"")")]
 
     [InlineData(@"Assert.That("""", Does.EndWith(""expected""))", @""""".Should().EndWith(""expected"")")]
     [InlineData(@"Assert.That("""", Does.Not.EndWith(""expected""))", @""""".Should().NotEndWith(""expected"")")]

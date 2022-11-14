@@ -162,6 +162,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var semanticModel = editor.SemanticModel;
         var compilation = editor.SemanticModel.Compilation;
 
+        var stringSymbol = compilation.GetTypeByMetadataName("System.String");
         var exceptionSymbol = compilation.GetTypeByMetadataName("System.Exception");
         var typeSymbol = compilation.GetTypeByMetadataName("System.Type");
         var resolveConstraintSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint");
@@ -389,11 +390,16 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             }
             else if (methodName is "That")
             {
-                if (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(resolveConstraintSymbol, SymbolEqualityComparer.Default))
+                if (method.Parameters.Length == 1 || (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(stringSymbol, SymbolEqualityComparer.Default)))
+                {
+                    result = RewriteUsingShould(arguments[0], "BeTrue", arguments.Skip(1));
+                }
+                else if (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(resolveConstraintSymbol, SymbolEqualityComparer.Default))
                 {
                     var isSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Is");
                     var hasSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Has");
                     var doesSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Does");
+                    var containsSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Contains");
                     var throwsSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Throws");
                     var constraintExpressionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.ConstraintExpression");
 
@@ -462,6 +468,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(NumericLiteral(1), arguments.Skip(2)));
                         }
+                        else if (Is(hasSymbol, "Count", "Zero") || Is(hasSymbol, "Length", "Zero"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeEmpty", arguments.Skip(2));
+                        }
                         else if (IsMethod(out var expected, isSymbol, "EqualTo"))
                         {
                             result = RewriteUsingShould(arguments[0], "Be", ArgumentList(expected, arguments.Skip(2)));
@@ -470,13 +480,17 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = RewriteUsingShould(arguments[0], "NotBe", ArgumentList(expected, arguments.Skip(2)));
                         }
-                        else if (IsMethod(out expected, hasSymbol, "Count", "EqualTo"))
+                        else if (IsMethod(out expected, hasSymbol, "Count", "EqualTo") || IsMethod(out expected, hasSymbol, "Length", "EqualTo"))
                         {
                             result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, hasSymbol, "Exactly", "Items"))
                         {
                             result = RewriteUsingShould(arguments[0], "HaveCount", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, containsSymbol, "Substring"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "Contain", ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, doesSymbol, "Contain"))
                         {
@@ -501,6 +515,15 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         else if (IsMethod(out expected, doesSymbol, "Not", "StartWith") || IsMethod(out expected, doesSymbol, "Not", "StartsWith"))
                         {
                             result = RewriteUsingShould(arguments[0], "NotStartWith", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "InstanceOf"))
+                        {
+                            result = RewriteUsingShould(arguments[0], "BeOfType", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsGenericMethod(out var instanceOfType, isSymbol, "InstanceOf"))
+                        {
+                            var exception = (TypeSyntax)generator.TypeExpression(instanceOfType);
+                            result = RewriteUsingShould(arguments[0], "BeOfType", exception, arguments.Skip(2));
                         }
                         else if (IsMethod(out expected, throwsSymbol, "InstanceOf") && semanticModel.GetOperation(expected, cancellationToken) is ITypeOfOperation typeOfOperation)
                         {
