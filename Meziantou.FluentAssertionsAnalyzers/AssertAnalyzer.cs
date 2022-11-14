@@ -61,6 +61,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
             if (ctx.Compilation.GetTypeByMetadataName("NUnit.Framework.AssertionException") is not null)
             {
                 ctx.RegisterOperationAction(AnalyzeNunitInvocation, OperationKind.Invocation);
+                ctx.RegisterOperationAction(AnalyzeNunitDynamicInvocation, OperationKind.DynamicInvocation);
                 ctx.RegisterOperationAction(AnalyzeNunitThrow, OperationKind.Throw);
             }
         });
@@ -97,6 +98,23 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
     {
         var op = (IInvocationOperation)context.Operation;
         if (IsNunitAssertClass(context.Compilation, op.TargetMethod.ContainingType))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
+        }
+    }
+
+    private void AnalyzeNunitDynamicInvocation(OperationAnalysisContext context)
+    {
+        var op = (IDynamicInvocationOperation)context.Operation;
+
+        if (op.Arguments.Length < 2)
+            return;
+
+        var containingType = ((op.Arguments[1]
+                    .Parent as IDynamicInvocationOperation)?
+                    .Operation as IDynamicMemberReferenceOperation)?
+                    .ContainingType;
+        if (IsNunitAssertClass(context.Compilation, containingType))
         {
             context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
         }

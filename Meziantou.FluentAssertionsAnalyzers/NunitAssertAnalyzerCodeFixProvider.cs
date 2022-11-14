@@ -154,7 +154,8 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             return document;
 
         var arguments = invocationExpression.ArgumentList.Arguments;
-        var method = (IMethodSymbol)editor.SemanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol;
+        var symbolInfo = editor.SemanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
+        var method = (IMethodSymbol)(symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault());
         if (method == null)
             return document;
 
