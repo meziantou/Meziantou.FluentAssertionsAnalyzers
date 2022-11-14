@@ -162,6 +162,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var semanticModel = editor.SemanticModel;
         var compilation = editor.SemanticModel.Compilation;
 
+        var stringSymbol = compilation.GetTypeByMetadataName("System.String");
         var exceptionSymbol = compilation.GetTypeByMetadataName("System.Exception");
         var typeSymbol = compilation.GetTypeByMetadataName("System.Type");
         var resolveConstraintSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint");
@@ -389,9 +390,9 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             }
             else if (methodName is "That")
             {
-                if (method.Parameters.Length == 1)
+                if (method.Parameters.Length == 1 || (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(stringSymbol, SymbolEqualityComparer.Default)))
                 {
-                    result = RewriteUsingShould(arguments[0], "BeTrue", Array.Empty<ArgumentSyntax>());
+                    result = RewriteUsingShould(arguments[0], "BeTrue", arguments.Skip(1));
                 }
                 else if (method.Parameters.Length >= 2 && method.Parameters[1].Type.Equals(resolveConstraintSymbol, SymbolEqualityComparer.Default))
                 {
