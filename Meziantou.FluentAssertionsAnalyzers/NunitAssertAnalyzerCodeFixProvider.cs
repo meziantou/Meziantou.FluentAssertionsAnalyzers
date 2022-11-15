@@ -168,7 +168,8 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var typeSymbol = compilation.GetTypeByMetadataName("System.Type");
         var resolveConstraintSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint");
 
-        var rewrite = new Rewriter();
+        bool isDynamic = semanticModel.GetOperation(invocationExpression, cancellationToken)?.Type is IDynamicTypeSymbol;
+        var rewrite = new Rewriter(isDynamic);
 
         SyntaxNode result = null;
         var addImports = true;
@@ -812,6 +813,12 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
 
     private class Rewriter
     {
+        private readonly bool _isDynamic;
+
+        public Rewriter(bool isDynamic)
+        {
+            _isDynamic = isDynamic;
+        }
 
         public SyntaxNode UsingShould(ArgumentSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
         {
@@ -841,10 +848,15 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             return UsingShould(originalArguments[0], "Be" + methodName, originalArguments.Skip(1).ToArray());
         }
 
-        private static InvocationExpressionSyntax InvokeShould(ExpressionSyntax expression)
+        private InvocationExpressionSyntax InvokeShould(ExpressionSyntax expression)
         {
+            var expr = expression;
+            if (_isDynamic)
+            {
+                expr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName("object"), expression);
+            }
             return InvocationExpression(
-                    MemberAccessExpression(Parenthesize(expression), "Should"))
+                    MemberAccessExpression(Parenthesize(expr), "Should"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }

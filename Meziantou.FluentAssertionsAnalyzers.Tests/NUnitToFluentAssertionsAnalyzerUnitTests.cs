@@ -77,7 +77,7 @@ class Test
     public void MyTest()
     {
         dynamic val = new object();
-        val.Should().NotBeNull();
+        ((object)val).Should().NotBeNull();
     }
 }
 """);
@@ -108,7 +108,7 @@ class Test
     public void MyTest()
     {
         dynamic val = new object();
-        val.Prop.Should().NotBeNull();
+        ((object)val.Prop).Should().NotBeNull();
     }
 }
 """);
