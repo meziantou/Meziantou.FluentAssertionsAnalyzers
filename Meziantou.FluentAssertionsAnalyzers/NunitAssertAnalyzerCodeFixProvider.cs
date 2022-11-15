@@ -164,6 +164,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var compilation = editor.SemanticModel.Compilation;
 
         var stringSymbol = compilation.GetTypeByMetadataName("System.String");
+        var iEnumerableSymbol = compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
         var exceptionSymbol = compilation.GetTypeByMetadataName("System.Exception");
         var typeSymbol = compilation.GetTypeByMetadataName("System.Type");
         var resolveConstraintSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint");
@@ -478,11 +479,13 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         }
                         else if (IsMethod(out var expected, isSymbol, "EqualTo"))
                         {
-                            result = rewrite.UsingShould(arguments[0], "Be", ArgumentList(expected, arguments.Skip(2)));
+                            var replacementMethodName = IsCollection(arguments[0]) ? "Equal": "Be";
+                            result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, isSymbol, "Not", "EqualTo"))
                         {
-                            result = rewrite.UsingShould(arguments[0], "NotBe", ArgumentList(expected, arguments.Skip(2)));
+                            var replacementMethodName = IsCollection(arguments[0]) ? "NotEqual": "NotBe";
+                            result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, isSymbol, "SameAs"))
                         {
@@ -580,6 +583,14 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                             var exception = (TypeSyntax)generator.TypeExpression(type);
                             result = rewrite.UsingShould(action, "Throw", exception, arguments.Skip(2));
                         }
+                    }
+
+                    bool IsCollection(ArgumentSyntax argumentSyntax)
+                    {
+                        var argumentTypeSymbol = semanticModel.GetOperation(argumentSyntax.Expression, cancellationToken)?.Type;
+                        if (iEnumerableSymbol == null || argumentTypeSymbol == null || argumentTypeSymbol.Equals(stringSymbol, SymbolEqualityComparer.Default))
+                            return false;
+                        return argumentTypeSymbol.AllInterfaces.Any(i => iEnumerableSymbol.Equals(i, SymbolEqualityComparer.Default));
                     }
 
                     bool Is(ITypeSymbol root, params string[] memberNames)
