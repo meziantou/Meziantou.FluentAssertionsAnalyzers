@@ -51,7 +51,69 @@ class Test
 }
 """);
     }
-    
+
+    [Fact]
+    public Task Assert_Dynamic()
+    {
+        return Assert(
+"""
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        dynamic val = new object();
+        [|Assert.That(val, Is.Not.Null)|];
+    }
+}
+""",
+"""
+using FluentAssertions;
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        dynamic val = new object();
+        ((object)val).Should().NotBeNull();
+    }
+}
+""");
+    }
+
+    [Fact]
+    public Task Assert_DynamicProp()
+    {
+        return Assert(
+            """
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        dynamic val = new object();
+        [|Assert.That(val.Prop, Is.Not.Null)|];
+    }
+}
+""",
+            """
+using FluentAssertions;
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        dynamic val = new object();
+        ((object)val.Prop).Should().NotBeNull();
+    }
+}
+""");
+    }
+
     [Fact]
     public Task Rethrow()
     {
