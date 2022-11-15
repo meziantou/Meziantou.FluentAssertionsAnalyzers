@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Simplification;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Meziantou.FluentAssertionsAnalyzers.NunitAssertAnalyzerCodeFixProvider.Rewriter;
 
 namespace Meziantou.FluentAssertionsAnalyzers;
 
@@ -808,39 +809,42 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         return list;
     }
 
-    private static SyntaxNode RewriteUsingShould(ArgumentSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
+    internal static class Rewriter
     {
-        return RewriteUsingShould(subject.Expression, methodName, genericParameterType: null, arguments);
-    }
+        public static SyntaxNode RewriteUsingShould(ArgumentSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
+        {
+            return RewriteUsingShould(subject.Expression, methodName, genericParameterType: null, arguments);
+        }
 
-    private static SyntaxNode RewriteUsingShould(ExpressionSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
-    {
-        return RewriteUsingShould(subject, methodName, genericParameterType: null, arguments);
-    }
+        public static SyntaxNode RewriteUsingShould(ExpressionSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
+        {
+            return RewriteUsingShould(subject, methodName, genericParameterType: null, arguments);
+        }
 
-    private static SyntaxNode RewriteUsingShould(ArgumentSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
-    {
-        return RewriteUsingShould(subject.Expression, methodName, genericParameterType, arguments);
-    }
+        public static SyntaxNode RewriteUsingShould(ArgumentSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
+        {
+            return RewriteUsingShould(subject.Expression, methodName, genericParameterType, arguments);
+        }
 
-    private static SyntaxNode RewriteUsingShould(ExpressionSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
-    {
-        var should = InvokeShould(subject);
-        should = InvocationExpression(MemberAccessExpression(should, methodName, genericParameterType));
-        should = should.AddArgumentListArguments(arguments.Select(arg => Argument(arg.Expression)).ToArray());
-        return should;
-    }
+        public static SyntaxNode RewriteUsingShould(ExpressionSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
+        {
+            var should = InvokeShould(subject);
+            should = InvocationExpression(MemberAccessExpression(should, methodName, genericParameterType));
+            should = should.AddArgumentListArguments(arguments.Select(arg => Argument(arg.Expression)).ToArray());
+            return should;
+        }
 
-    private static SyntaxNode RewriteTrueOrFalse(SeparatedSyntaxList<ArgumentSyntax> originalArguments, string methodName)
-    {
-        return RewriteUsingShould(originalArguments[0], "Be" + methodName, originalArguments.Skip(1).ToArray());
-    }
+        public static SyntaxNode RewriteTrueOrFalse(SeparatedSyntaxList<ArgumentSyntax> originalArguments, string methodName)
+        {
+            return RewriteUsingShould(originalArguments[0], "Be" + methodName, originalArguments.Skip(1).ToArray());
+        }
 
-    private static InvocationExpressionSyntax InvokeShould(ExpressionSyntax expression)
-    {
-        return InvocationExpression(
-                MemberAccessExpression(Parenthesize(expression), "Should"))
-            .WithAdditionalAnnotations(Simplifier.Annotation);
+        private static InvocationExpressionSyntax InvokeShould(ExpressionSyntax expression)
+        {
+            return InvocationExpression(
+                    MemberAccessExpression(Parenthesize(expression), "Should"))
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+        }
     }
 
     private static ExpressionSyntax InvokeFluentActionsInvoking(Compilation compilation, SyntaxGenerator generator, ExpressionSyntax expression)
