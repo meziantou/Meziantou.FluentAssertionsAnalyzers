@@ -616,6 +616,7 @@ class Test
     [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected""))", @""""".Should().NotBe(""expected"")")]
     [InlineData(@"Assert.That(collection, Is.EqualTo(new int[0]))", @"collection.Should().Equal(new int[0])")]
     [InlineData(@"Assert.That(collection, Is.Not.EqualTo(new int[0]))", @"collection.Should().NotEqual(new int[0])")]
+    [InlineData(@"Assert.That((IEnumerable<int>)collection, Is.EqualTo(new int[0]))", @"((IEnumerable<int>)collection).Should().Equal(new int[0])")]
 
     [InlineData(@"Assert.That(collection, Is.EquivalentTo(new int[0]))", @"collection.Should().BeEquivalentTo(new int[0])")]
     [InlineData(@"Assert.That(collection, Is.Not.EquivalentTo(new int[0]))", @"collection.Should().NotBeEquivalentTo(new int[0])")]
@@ -651,6 +652,7 @@ class Test
     {
         return Assert(
 $$"""
+using System.Collections.Generic;
 using NUnit.Framework;
 
 class Test
@@ -663,6 +665,7 @@ class Test
 }
 """,
 $$"""
+using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 
