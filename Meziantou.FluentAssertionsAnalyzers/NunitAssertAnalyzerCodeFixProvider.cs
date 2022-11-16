@@ -543,6 +543,22 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = rewrite.UsingShould(arguments[0], "NotStartWith", ArgumentList(expected, arguments.Skip(2)));
                         }
+                        else if (IsMethod(out expected, isSymbol, "GreaterThan"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeGreaterThan", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "GreaterThanOrEqualTo"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeGreaterThanOrEqualTo", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "LessThan"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeLessThan", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "LessThanOrEqualTo"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeLessThanOrEqualTo", ArgumentList(expected, arguments.Skip(2)));
+                        }
                         else if (IsMethod(out expected, isSymbol, "InstanceOf"))
                         {
                             result = rewrite.UsingShould(arguments[0], "BeOfType", ArgumentList(expected, arguments.Skip(2)));

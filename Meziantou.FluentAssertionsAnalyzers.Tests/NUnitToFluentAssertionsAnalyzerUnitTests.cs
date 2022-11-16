@@ -637,6 +637,11 @@ class Test
 
     [InlineData(@"Assert.That("""", Does.Not.StartsWith(""expected""))", @""""".Should().NotStartWith(""expected"")")]
 
+    [InlineData(@"Assert.That(1, Is.GreaterThan(0))", @"1.Should().BeGreaterThan(0)")]
+    [InlineData(@"Assert.That(1, Is.GreaterThanOrEqualTo(0))", @"1.Should().BeGreaterThanOrEqualTo(0)")]
+    [InlineData(@"Assert.That(0, Is.LessThan(1))", @"0.Should().BeLessThan(1)")]
+    [InlineData(@"Assert.That(0, Is.LessThanOrEqualTo(1))", @"0.Should().BeLessThanOrEqualTo(1)")]
+
     [InlineData(@"Assert.That(() => { }, Throws.InstanceOf(typeof(System.ArgumentException)))", @"FluentActions.Invoking(() => { }).Should().Throw<System.ArgumentException>()")]
     [InlineData(@"Assert.That(() => { }, Throws.InstanceOf<System.ArgumentException>())", @"FluentActions.Invoking(() => { }).Should().Throw<System.ArgumentException>()")]
 
