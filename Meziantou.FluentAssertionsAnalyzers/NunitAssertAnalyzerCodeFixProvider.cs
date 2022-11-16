@@ -484,6 +484,14 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = rewrite.UsingShould(arguments[0], "NotBe", ArgumentList(expected, arguments.Skip(2)));
                         }
+                        else if (IsMethod(out expected, isSymbol, "SameAs"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeSameAs", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "Not", "SameAs"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "NotBeSameAs", ArgumentList(expected, arguments.Skip(2)));
+                        }
                         else if (IsMethod(out expected, isSymbol, "EquivalentTo"))
                         {
                             result = rewrite.UsingShould(arguments[0], "BeEquivalentTo", ArgumentList(expected, arguments.Skip(2)));

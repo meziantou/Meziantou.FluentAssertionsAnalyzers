@@ -618,6 +618,9 @@ class Test
     [InlineData(@"Assert.That(collection, Is.EquivalentTo(new int[0]))", @"collection.Should().BeEquivalentTo(new int[0])")]
     [InlineData(@"Assert.That(collection, Is.Not.EquivalentTo(new int[0]))", @"collection.Should().NotBeEquivalentTo(new int[0])")]
 
+    [InlineData(@"Assert.That(""actual"", Is.SameAs(""expected""))", @"""actual"".Should().BeSameAs(""expected"")")]
+    [InlineData(@"Assert.That(""actual"", Is.Not.SameAs(""expected""))", @"""actual"".Should().NotBeSameAs(""expected"")")]
+
     [InlineData(@"Assert.That("""", Does.Contain(""expected""))", @""""".Should().Contain(""expected"")")]
     [InlineData(@"Assert.That("""", Does.Not.Contain(""expected""))", @""""".Should().NotContain(""expected"")")]
     [InlineData(@"Assert.That("""", Contains.Substring(""expected""))", @""""".Should().Contain(""expected"")")]
