@@ -625,6 +625,8 @@ class Test
     [InlineData(@"Assert.That("""", Does.Not.Contain(""expected""))", @""""".Should().NotContain(""expected"")")]
     [InlineData(@"Assert.That("""", Contains.Substring(""expected""))", @""""".Should().Contain(""expected"")")]
 
+    [InlineData(@"Assert.That(collection, Contains.Item(1))", @"collection.Should().Contain(1)")]
+
     [InlineData(@"Assert.That("""", Does.EndWith(""expected""))", @""""".Should().EndWith(""expected"")")]
     [InlineData(@"Assert.That("""", Does.Not.EndWith(""expected""))", @""""".Should().NotEndWith(""expected"")")]
 

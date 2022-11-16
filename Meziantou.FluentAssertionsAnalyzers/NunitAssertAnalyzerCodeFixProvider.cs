@@ -523,6 +523,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = rewrite.UsingShould(arguments[0], "NotContain", ArgumentList(expected, arguments.Skip(2)));
                         }
+                        else if (IsMethod(out expected, containsSymbol, "Item"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "Contain", ArgumentList(expected, arguments.Skip(2)));
+                        }
                         else if (IsMethod(out expected, doesSymbol, "EndWith"))
                         {
                             result = rewrite.UsingShould(arguments[0], "EndWith", ArgumentList(expected, arguments.Skip(2)));
