@@ -587,8 +587,8 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
 
                     bool IsCollection(ArgumentSyntax argumentSyntax)
                     {
-                        var argumentTypeSymbol = semanticModel.GetOperation(argumentSyntax.Expression, cancellationToken)?.Type;
-                        if (iEnumerableSymbol == null || argumentTypeSymbol == null || argumentTypeSymbol.Equals(stringSymbol, SymbolEqualityComparer.Default))
+                        var argumentTypeSymbol = semanticModel.GetTypeInfo(argumentSyntax.Expression, cancellationToken).Type;
+                        if (iEnumerableSymbol == null || argumentTypeSymbol == null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
                             return false;
                         return argumentTypeSymbol.AllInterfaces.Any(i => iEnumerableSymbol.Equals(i, SymbolEqualityComparer.Default));
                     }
