@@ -242,19 +242,19 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             }
             else if (methodName is "Greater")
             {
-                result = rewrite.UsingShould(arguments[1], "BeGreaterThan", ArgumentList(arguments[0], arguments.Skip(2)));
+                result = rewrite.UsingShould(arguments[0], "BeGreaterThan", ArgumentList(arguments[1], arguments.Skip(2)));
             }
             else if (methodName is "GreaterOrEqual")
             {
-                result = rewrite.UsingShould(arguments[1], "BeGreaterThanOrEqualTo", ArgumentList(arguments[0], arguments.Skip(2)));
+                result = rewrite.UsingShould(arguments[0], "BeGreaterThanOrEqualTo", ArgumentList(arguments[1], arguments.Skip(2)));
             }
             else if (methodName is "Less")
             {
-                result = rewrite.UsingShould(arguments[1], "BeLessThan", ArgumentList(arguments[0], arguments.Skip(2)));
+                result = rewrite.UsingShould(arguments[0], "BeLessThan", ArgumentList(arguments[1], arguments.Skip(2)));
             }
             else if (methodName is "LessOrEqual")
             {
-                result = rewrite.UsingShould(arguments[1], "BeLessThanOrEqualTo", ArgumentList(arguments[0], arguments.Skip(2)));
+                result = rewrite.UsingShould(arguments[0], "BeLessThanOrEqualTo", ArgumentList(arguments[1], arguments.Skip(2)));
             }
             else if (methodName is "Negative")
             {
