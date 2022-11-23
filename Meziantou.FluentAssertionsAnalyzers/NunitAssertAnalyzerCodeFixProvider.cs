@@ -495,7 +495,8 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         else if (IsMethod(out expected, hasSymbol, "Count", "EqualTo") || IsMethod(out expected, hasSymbol, "Length", "EqualTo"))
                         {
                             var argumentTypeSymbol = semanticModel.GetTypeInfo(arguments[0].Expression, cancellationToken).Type;
-                            var replacementMethodName = argumentTypeSymbol.SpecialType == SpecialType.System_String ? "HaveLength" : "HaveCount";
+                            var replacementMethodName = argumentTypeSymbol?.SpecialType == SpecialType.System_String ? "HaveLength" : "HaveCount";
+
                             result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, hasSymbol, "Exactly", "Items"))
