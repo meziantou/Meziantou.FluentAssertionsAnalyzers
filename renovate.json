@@ -3,5 +3,17 @@
   "extends": [
     "config:base",
     ":dependencyDashboardApproval"
-  ]
+  ],
+  "packageRules": [
+     {
+      "matchPackageNames": ["Microsoft.CodeAnalysis"],
+      "groupName": "roslyn-analyzers",
+      "enabled": false
+    },
+    {
+      "matchPackagePatterns": [ ".*" ],
+      "groupName": "all",
+      "separateMajorMinor": false
+    }
+  ]    
 }
