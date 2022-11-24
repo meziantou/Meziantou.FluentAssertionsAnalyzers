@@ -20,11 +20,11 @@ jobs:
   create_nuget:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
     - run: dotnet pack --configuration Release /bl
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: nuget
         if-no-files-found: error
@@ -41,12 +41,12 @@ jobs:
         configuration: [ Debug, Release ]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup .NET Core (global.json)
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
     - run: dotnet test --configuration ${{ matrix.configuration }} --logger trx --results-directory "${{ env.TestResultsDirectory }}" /p:WarningsAsErrors=true
       name: Run tests
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: always()
       with:
         name: test-results-${{ matrix.runs-on }}-${{ matrix.configuration }}
@@ -58,12 +58,12 @@ jobs:
     runs-on: 'ubuntu-20.04'
     needs: [ create_nuget, build_and_test ]
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: nuget
         path: ${{ env.NuGetDirectory }}
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
     - run: |
         Write-Host "Current ref: $env:GITHUB_REF"
         Write-Host "Searching nupkg in folder: ${{ env.NuGetDirectory }}"
