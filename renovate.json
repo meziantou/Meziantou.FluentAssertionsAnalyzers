@@ -5,8 +5,8 @@
     ":dependencyDashboardApproval"
   ],
   "packageRules": [
-     {
-      "matchPackageNames": ["Microsoft.CodeAnalysis"],
+    {
+      "matchPackageNames": ["Microsoft.CodeAnalysis.CSharp.Workspaces", "Microsoft.CodeAnalysis.Analyzers"],
       "groupName": "roslyn-analyzers",
       "enabled": false
     },
@@ -15,5 +15,5 @@
       "groupName": "all",
       "separateMajorMinor": false
     }
-  ]    
+  ]
 }
