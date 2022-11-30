@@ -618,9 +618,14 @@ class Test
     [InlineData(@"Assert.That(collection, Is.EquivalentTo(new int[0]))", @"collection.Should().BeEquivalentTo(new int[0])")]
     [InlineData(@"Assert.That(collection, Is.Not.EquivalentTo(new int[0]))", @"collection.Should().NotBeEquivalentTo(new int[0])")]
 
+    [InlineData(@"Assert.That(""actual"", Is.SameAs(""expected""))", @"""actual"".Should().BeSameAs(""expected"")")]
+    [InlineData(@"Assert.That(""actual"", Is.Not.SameAs(""expected""))", @"""actual"".Should().NotBeSameAs(""expected"")")]
+
     [InlineData(@"Assert.That("""", Does.Contain(""expected""))", @""""".Should().Contain(""expected"")")]
     [InlineData(@"Assert.That("""", Does.Not.Contain(""expected""))", @""""".Should().NotContain(""expected"")")]
     [InlineData(@"Assert.That("""", Contains.Substring(""expected""))", @""""".Should().Contain(""expected"")")]
+
+    [InlineData(@"Assert.That(collection, Contains.Item(1))", @"collection.Should().Contain(1)")]
 
     [InlineData(@"Assert.That("""", Does.EndWith(""expected""))", @""""".Should().EndWith(""expected"")")]
     [InlineData(@"Assert.That("""", Does.Not.EndWith(""expected""))", @""""".Should().NotEndWith(""expected"")")]
@@ -631,6 +636,11 @@ class Test
     [InlineData(@"Assert.That("""", Does.Not.StartWith(""expected""))", @""""".Should().NotStartWith(""expected"")")]
 
     [InlineData(@"Assert.That("""", Does.Not.StartsWith(""expected""))", @""""".Should().NotStartWith(""expected"")")]
+
+    [InlineData(@"Assert.That(1, Is.GreaterThan(0))", @"1.Should().BeGreaterThan(0)")]
+    [InlineData(@"Assert.That(1, Is.GreaterThanOrEqualTo(0))", @"1.Should().BeGreaterThanOrEqualTo(0)")]
+    [InlineData(@"Assert.That(0, Is.LessThan(1))", @"0.Should().BeLessThan(1)")]
+    [InlineData(@"Assert.That(0, Is.LessThanOrEqualTo(1))", @"0.Should().BeLessThanOrEqualTo(1)")]
 
     [InlineData(@"Assert.That(() => { }, Throws.InstanceOf(typeof(System.ArgumentException)))", @"FluentActions.Invoking(() => { }).Should().Throw<System.ArgumentException>()")]
     [InlineData(@"Assert.That(() => { }, Throws.InstanceOf<System.ArgumentException>())", @"FluentActions.Invoking(() => { }).Should().Throw<System.ArgumentException>()")]

@@ -484,6 +484,14 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = rewrite.UsingShould(arguments[0], "NotBe", ArgumentList(expected, arguments.Skip(2)));
                         }
+                        else if (IsMethod(out expected, isSymbol, "SameAs"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeSameAs", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "Not", "SameAs"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "NotBeSameAs", ArgumentList(expected, arguments.Skip(2)));
+                        }
                         else if (IsMethod(out expected, isSymbol, "EquivalentTo"))
                         {
                             result = rewrite.UsingShould(arguments[0], "BeEquivalentTo", ArgumentList(expected, arguments.Skip(2)));
@@ -515,6 +523,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             result = rewrite.UsingShould(arguments[0], "NotContain", ArgumentList(expected, arguments.Skip(2)));
                         }
+                        else if (IsMethod(out expected, containsSymbol, "Item"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "Contain", ArgumentList(expected, arguments.Skip(2)));
+                        }
                         else if (IsMethod(out expected, doesSymbol, "EndWith"))
                         {
                             result = rewrite.UsingShould(arguments[0], "EndWith", ArgumentList(expected, arguments.Skip(2)));
@@ -530,6 +542,22 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         else if (IsMethod(out expected, doesSymbol, "Not", "StartWith") || IsMethod(out expected, doesSymbol, "Not", "StartsWith"))
                         {
                             result = rewrite.UsingShould(arguments[0], "NotStartWith", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "GreaterThan"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeGreaterThan", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "GreaterThanOrEqualTo"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeGreaterThanOrEqualTo", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "LessThan"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeLessThan", ArgumentList(expected, arguments.Skip(2)));
+                        }
+                        else if (IsMethod(out expected, isSymbol, "LessThanOrEqualTo"))
+                        {
+                            result = rewrite.UsingShould(arguments[0], "BeLessThanOrEqualTo", ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, isSymbol, "InstanceOf"))
                         {
