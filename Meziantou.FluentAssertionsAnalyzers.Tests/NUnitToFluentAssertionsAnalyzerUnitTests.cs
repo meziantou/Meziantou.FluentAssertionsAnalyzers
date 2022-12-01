@@ -53,6 +53,72 @@ class Test
     }
 
     [Fact]
+    public Task EnumerableTest()
+    {
+        return Assert(
+            $$"""
+using System.Collections;
+using NUnit.Framework;
+
+class CustomEnumerable : IEnumerable
+{
+    private readonly IEnumerable m_Collection;
+
+    public CustomEnumerable(IEnumerable collection)
+    {
+        m_Collection = collection;
+    }
+    public IEnumerator GetEnumerator()
+    {
+        foreach (var item in m_Collection)
+        {
+            yield return item;
+        }
+    }
+}
+
+class Test
+{
+    public void MyTest()
+    {
+        var collection = new CustomEnumerable(new int[0]);
+        [||]Assert.That(collection, Is.EqualTo(new int[0]));
+    }
+}
+""",
+            $$"""
+using System.Collections;
+using NUnit.Framework;
+
+class CustomEnumerable : IEnumerable
+{
+    private readonly IEnumerable m_Collection;
+
+    public CustomEnumerable(IEnumerable collection)
+    {
+        m_Collection = collection;
+    }
+    public IEnumerator GetEnumerator()
+    {
+        foreach (var item in m_Collection)
+        {
+            yield return item;
+        }
+    }
+}
+
+class Test
+{
+    public void MyTest()
+    {
+        var collection = new CustomEnumerable(new int[0]);
+        Assert.That(collection, Is.EqualTo(new int[0]));
+    }
+}
+""");
+    }
+
+    [Fact]
     public Task Assert_Dynamic()
     {
         return Assert(

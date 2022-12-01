@@ -478,13 +478,21 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         }
                         else if (IsMethod(out var expected, isSymbol, "EqualTo"))
                         {
-                            var replacementMethodName = IsCollection(arguments[0]) ? "Equal": "Be";
-                            result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
+                            var (isCollection, isMigrationSupported) = IsCollection(arguments[0]);
+                            if (isMigrationSupported)
+                            {
+                                var replacementMethodName = isCollection ? "Equal": "Be";
+                                result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
+                            }
                         }
                         else if (IsMethod(out expected, isSymbol, "Not", "EqualTo"))
                         {
-                            var replacementMethodName = IsCollection(arguments[0]) ? "NotEqual": "NotBe";
-                            result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
+                            var (isCollection, isMigrationSupported) = IsCollection(arguments[0]);
+                            if (isMigrationSupported)
+                            {
+                                var replacementMethodName = isCollection ? "NotEqual" : "NotBe";
+                                result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
+                            }
                         }
                         else if (IsMethod(out expected, isSymbol, "SameAs"))
                         {
@@ -584,16 +592,25 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         }
                     }
 
-                    bool IsCollection(ArgumentSyntax argumentSyntax)
+                    (bool isCollection, bool isMigrationSupported) IsCollection(ArgumentSyntax argumentSyntax)
                     {
                         var argumentTypeSymbol = semanticModel.GetTypeInfo(argumentSyntax.Expression, cancellationToken).Type;
                         if (argumentTypeSymbol == null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
-                            return false;
-                        return argumentTypeSymbol.OriginalDefinition.TypeKind == TypeKind.Array
+                            return (false, true);
+
+                        var isCollection = 
+                               argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_IEnumerable
+                            || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => 
+                                i.SpecialType == SpecialType.System_Collections_IEnumerable);
+
+                        var isSupportedCollection = argumentTypeSymbol.OriginalDefinition.TypeKind == TypeKind.Array
                             || argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T
                             || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => 
-                                i.TypeKind == TypeKind.Array ||
                                 i.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
+
+                        var isMigrationSupported = !isCollection || isSupportedCollection;
+
+                        return (isCollection, isMigrationSupported);
                     }
 
                     bool Is(ITypeSymbol root, params string[] memberNames)
