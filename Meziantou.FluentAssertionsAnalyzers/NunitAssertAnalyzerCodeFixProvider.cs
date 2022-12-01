@@ -589,7 +589,11 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         var argumentTypeSymbol = semanticModel.GetTypeInfo(argumentSyntax.Expression, cancellationToken).Type;
                         if (argumentTypeSymbol == null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
                             return false;
-                        return argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable);
+                        return argumentTypeSymbol.OriginalDefinition.TypeKind == TypeKind.Array
+                            || argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T
+                            || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => 
+                                i.TypeKind == TypeKind.Array ||
+                                i.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
                     }
 
                     bool Is(ITypeSymbol root, params string[] memberNames)
