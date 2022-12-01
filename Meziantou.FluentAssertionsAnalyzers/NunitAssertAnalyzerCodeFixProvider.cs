@@ -164,7 +164,6 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var compilation = editor.SemanticModel.Compilation;
 
         var stringSymbol = compilation.GetTypeByMetadataName("System.String");
-        var iEnumerableSymbol = compilation.GetTypeByMetadataName("System.Collections.IEnumerable");
         var exceptionSymbol = compilation.GetTypeByMetadataName("System.Exception");
         var typeSymbol = compilation.GetTypeByMetadataName("System.Type");
         var resolveConstraintSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint");
@@ -588,9 +587,9 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                     bool IsCollection(ArgumentSyntax argumentSyntax)
                     {
                         var argumentTypeSymbol = semanticModel.GetTypeInfo(argumentSyntax.Expression, cancellationToken).Type;
-                        if (iEnumerableSymbol == null || argumentTypeSymbol == null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
+                        if (argumentTypeSymbol == null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
                             return false;
-                        return argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => iEnumerableSymbol.OriginalDefinition.Equals(i, SymbolEqualityComparer.Default));
+                        return argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => i.SpecialType == SpecialType.System_Collections_IEnumerable);
                     }
 
                     bool Is(ITypeSymbol root, params string[] memberNames)
