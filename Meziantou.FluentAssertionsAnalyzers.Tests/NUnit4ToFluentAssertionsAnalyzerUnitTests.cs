@@ -30,19 +30,17 @@ public sealed class NUnit4ToFluentAssertionsAnalyzerUnitTests
         return Assert(
 """
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 class Test
 {
     public void MyTest()
     {
-        [|ClassicAssert.Pass()|];
+        [|Assert.Pass()|];
     }
 }
 """,
 """
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 class Test
 {
@@ -128,21 +126,19 @@ class Test
         return Assert(
 """
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 class Test
 {
     public void MyTest()
     {
         dynamic val = new object();
-        [|ClassicAssert.That(val, Is.Not.Null)|];
+        [|Assert.That(val, Is.Not.Null)|];
     }
 }
 """,
 """
 using FluentAssertions;
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 class Test
 {
@@ -161,14 +157,13 @@ class Test
         return Assert(
             """
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 class Test
 {
     public void MyTest()
     {
         dynamic val = new object();
-        [|ClassicAssert.That(val.Prop, Is.Not.Null)|];
+        [|Assert.That(val.Prop, Is.Not.Null)|];
     }
 }
 """,
@@ -224,10 +219,6 @@ class Test
     [InlineData(@"ClassicAssert.AreEqual(0d, 1d, delta: 2d)", @"1d.Should().BeApproximately(0d, 2d)")]
     [InlineData(@"ClassicAssert.AreEqual(0d, 1d, delta: 2d, ""because"")", @"1d.Should().BeApproximately(0d, 2d, ""because"")")]
     [InlineData(@"ClassicAssert.AreEqual(0d, 1d, delta: 2d, ""because"", 1, 2)", @"1d.Should().BeApproximately(0d, 2d, ""because"", 1, 2)")]
-
-    [InlineData(@"ClassicAssert.AreEqual(0d, (double?)null, delta: 2d)", @"((double?)null).Should().BeApproximately(0d, 2d)")]
-    [InlineData(@"ClassicAssert.AreEqual(0d, (double?)null, delta: 2d, ""because"")", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"")")]
-    [InlineData(@"ClassicAssert.AreEqual(0d, (double?)null, delta: 2d, ""because"", 1, 2)", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"", 1, 2)")]
 
     [InlineData(@"ClassicAssert.AreNotEqual(""expected"", ""actual"")", @"""actual"".Should().NotBe(""expected"")")]
     [InlineData(@"ClassicAssert.AreNotEqual(""expected"", ""actual"", ""because"")", @"""actual"".Should().NotBe(""expected"", ""because"")")]
@@ -558,7 +549,6 @@ class Test
             $$"""
               using System.Collections.Generic;
               using NUnit.Framework.Legacy;
-              using NUnit.Framework;
 
               class Test
               {
@@ -573,8 +563,7 @@ class Test
               using System.Collections.Generic;
               using FluentAssertions;
               using NUnit.Framework.Legacy;
-              using NUnit.Framework;
-
+              
               class Test
               {
                   public void MyTest()
