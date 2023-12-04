@@ -59,7 +59,6 @@ class Test
             $$"""
 using System.Collections;
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 class CustomEnumerable : IEnumerable
 {
@@ -83,14 +82,13 @@ class Test
     public void MyTest()
     {
         var collection = new CustomEnumerable(new int[0]);
-        [||]ClassicAssert.That(collection, Is.EqualTo(new int[0]));
+        [||]Assert.That(collection, Is.EqualTo(new int[0]));
     }
 }
 """,
             $$"""
 using System.Collections;
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 class CustomEnumerable : IEnumerable
 {
@@ -114,7 +112,7 @@ class Test
     public void MyTest()
     {
         var collection = new CustomEnumerable(new int[0]);
-        ClassicAssert.That(collection, Is.EqualTo(new int[0]));
+        Assert.That(collection, Is.EqualTo(new int[0]));
     }
 }
 """);
@@ -355,17 +353,9 @@ class Test
     [InlineData(@"ClassicAssert.IsInstanceOf(typeof(string), """", ""because"")", @""""".Should().BeOfType(typeof(string), ""because"")")]
     [InlineData(@"ClassicAssert.IsInstanceOf(typeof(string), """", ""because"", 1, 2)", @""""".Should().BeOfType(typeof(string), ""because"", 1, 2)")]
 
-    [InlineData(@"ClassicAssert.That("""", Is.InstanceOf(typeof(string)))", @""""".Should().BeOfType(typeof(string))")]
-    [InlineData(@"ClassicAssert.That("""", Is.InstanceOf(typeof(string)), ""because"")", @""""".Should().BeOfType(typeof(string), ""because"")")]
-    [InlineData(@"ClassicAssert.That("""", Is.InstanceOf(typeof(string)), ""because"", 1, 2)", @""""".Should().BeOfType(typeof(string), ""because"", 1, 2)")]
-
     [InlineData(@"ClassicAssert.IsInstanceOf<string>("""")", @""""".Should().BeOfType<string>()")]
     [InlineData(@"ClassicAssert.IsInstanceOf<string>("""", ""because"")", @""""".Should().BeOfType<string>(""because"")")]
     [InlineData(@"ClassicAssert.IsInstanceOf<string>("""", ""because"", 1, 2)", @""""".Should().BeOfType<string>(""because"", 1, 2)")]
-
-    [InlineData(@"ClassicAssert.That("""", Is.InstanceOf<string>())", @""""".Should().BeOfType<string>()")]
-    [InlineData(@"ClassicAssert.That("""", Is.InstanceOf<string>(), ""because"")", @""""".Should().BeOfType<string>(""because"")")]
-    [InlineData(@"ClassicAssert.That("""", Is.InstanceOf<string>(), ""because"", 1, 2)", @""""".Should().BeOfType<string>(""because"", 1, 2)")]
 
     [InlineData(@"ClassicAssert.IsNotInstanceOf(typeof(string), """")", @""""".Should().NotBeOfType(typeof(string))")]
     [InlineData(@"ClassicAssert.IsNotInstanceOf(typeof(string), """", ""because"")", @""""".Should().NotBeOfType(typeof(string), ""because"")")]
