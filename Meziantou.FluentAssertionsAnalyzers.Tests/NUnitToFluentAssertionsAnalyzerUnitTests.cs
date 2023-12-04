@@ -1126,6 +1126,7 @@ class Test
                       {{fix}};
                   }
               }
-              """);
+              """
+            ,useNUnit4: true);
     }
 }
