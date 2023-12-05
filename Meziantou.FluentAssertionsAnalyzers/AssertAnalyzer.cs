@@ -91,10 +91,39 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
         public bool IsNUnitAvailable => _nunitAssertionExceptionSymbol is not null;
         public bool IsXUnitAvailable => _xunitAssertSymbol is not null;
 
+        private static readonly char[] SymbolsSeparators = [';'];
+
+        private bool IsMethodExcluded(AnalyzerOptions options, IInvocationOperation operation)
+        {
+            var location = operation.Syntax.GetLocation().SourceTree;
+            if (location is null)
+                return false;
+
+            var fileOptions = options.AnalyzerConfigOptionsProvider.GetOptions(location);
+            if (fileOptions is null)
+                return false;
+
+            if (!fileOptions.TryGetValue("mfa_excluded_methods", out var symbolDocumentationIds))
+                return false;
+
+            var parts = symbolDocumentationIds.Split(SymbolsSeparators, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(part, compilation);
+                foreach (var symbol in symbols)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(symbol, operation.TargetMethod))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         public void AnalyzeXunitInvocation(OperationAnalysisContext context)
         {
             var op = (IInvocationOperation)context.Operation;
-            if (op.TargetMethod.ContainingType.Equals(_xunitAssertSymbol, SymbolEqualityComparer.Default))
+            if (op.TargetMethod.ContainingType.Equals(_xunitAssertSymbol, SymbolEqualityComparer.Default) && !IsMethodExcluded(context.Options, op))
             {
                 context.ReportDiagnostic(Diagnostic.Create(XunitRule, op.Syntax.GetLocation()));
             }
@@ -103,7 +132,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
         public void AnalyzeMsTestInvocation(OperationAnalysisContext context)
         {
             var op = (IInvocationOperation)context.Operation;
-            if (IsMsTestAssertClass(op.TargetMethod.ContainingType))
+            if (IsMsTestAssertClass(op.TargetMethod.ContainingType) && !IsMethodExcluded(context.Options, op))
             {
                 context.ReportDiagnostic(Diagnostic.Create(MSTestsRule, op.Syntax.GetLocation()));
             }
@@ -121,9 +150,9 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
         public void AnalyzeNunitInvocation(OperationAnalysisContext context)
         {
             var op = (IInvocationOperation)context.Operation;
-            if (IsNunitAssertClass(op.TargetMethod.ContainingType))
+            if (IsNunitAssertClass(op.TargetMethod.ContainingType) && !IsMethodExcluded(context.Options, op))
             {
-                if (op.TargetMethod.Name is "Inconclusive")
+                if (op.TargetMethod.Name is "Inconclusive" or "Ignore" && op.TargetMethod.ContainingType.Equals(_nunitAssertSymbol, SymbolEqualityComparer.Default))
                     return;
 
                 context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));

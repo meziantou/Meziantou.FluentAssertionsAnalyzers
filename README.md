@@ -9,3 +9,12 @@
 ## Installation
 
 Install the NuGet package: [Meziantou.FluentAssertionsAnalyzers](https://www.nuget.org/packages/Meziantou.FluentAssertionsAnalyzers/)
+
+## Configuration
+
+You can exclude assertion methods using the `.editorconfig` file:
+
+````
+[*.cs]
+mfa_excluded_methods=M:NUnit.Framework.Assert.Fail;M:NUnit.Framework.Assert.Fail(System.String)
+````

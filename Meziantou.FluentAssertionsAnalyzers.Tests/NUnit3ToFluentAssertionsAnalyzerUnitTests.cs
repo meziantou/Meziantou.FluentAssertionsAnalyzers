@@ -64,9 +64,88 @@ class Test
     public void MyTest()
     {
         Assert.Inconclusive();
+        Assert.Inconclusive("");
     }
 }
 """);
+    }
+    
+    [Fact]
+    public Task Assert_Ignore_NoReport()
+    {
+        return Assert(
+"""
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        Assert.Ignore();
+        Assert.Ignore("");
+    }
+}
+""");
+    }
+    
+    [Fact]
+    public Task Assert_Fail_ExcludedFromOptions()
+    {
+        return CreateProjectBuilder()
+                  .WithSourceCode("""
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        Assert.Fail();
+        [|Assert.Fail("dummy")|];
+    }
+}
+""")
+                  .AddAnalyzerConfiguration("mfa_excluded_methods", "M:NUnit.Framework.Assert.Fail")
+                  .ValidateAsync();
+    }
+    
+    [Fact]
+    public Task Assert_Fail_String_ExcludedFromOptions()
+    {
+        return CreateProjectBuilder()
+                  .WithSourceCode("""
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        [|Assert.Fail()|];
+        Assert.Fail("dummy");
+    }
+}
+""")
+                  .AddAnalyzerConfiguration("mfa_excluded_methods", "M:NUnit.Framework.Assert.Fail(System.String)")
+                  .ValidateAsync();
+    }
+    
+    [Fact]
+    public Task Assert_MultiMethods_ExcludedFromOptions()
+    {
+        return CreateProjectBuilder()
+                  .WithSourceCode("""
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        Assert.Fail();
+        Assert.Fail("dummy");
+    }
+}
+""")
+                  .AddAnalyzerConfiguration("mfa_excluded_methods", "M:NUnit.Framework.Assert.Fail;M:NUnit.Framework.Assert.Fail(System.String)")
+                  .ValidateAsync();
     }
 
     [Fact]
