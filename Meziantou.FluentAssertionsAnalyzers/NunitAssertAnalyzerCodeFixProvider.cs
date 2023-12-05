@@ -24,7 +24,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         var nodeToFix = root?.FindNode(context.Span, getInnermostNodeForTie: true);
-        if (nodeToFix == null)
+        if (nodeToFix is null)
             return;
 
         var title = "Use FluentAssertions";
@@ -156,7 +156,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var arguments = invocationExpression.ArgumentList.Arguments;
         var symbolInfo = editor.SemanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
         var method = (IMethodSymbol)(symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault());
-        if (method == null)
+        if (method is null)
             return document;
 
         var methodName = method.Name;
@@ -168,7 +168,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var typeSymbol = compilation.GetTypeByMetadataName("System.Type");
         var resolveConstraintSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint");
 
-        bool isDynamic = semanticModel.GetOperation(invocationExpression, cancellationToken)?.Type is IDynamicTypeSymbol;
+        var isDynamic = semanticModel.GetOperation(invocationExpression, cancellationToken)?.Type is IDynamicTypeSymbol;
         var rewrite = new Rewriter(isDynamic);
 
         SyntaxNode result = null;
@@ -310,7 +310,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             else if (methodName is "Catch" && method.TypeArguments.Length == 0 && method.Parameters[0].Type.Equals(typeSymbol, SymbolEqualityComparer.Default))
             {
                 var exceptionType = GetConstantTypeValue(semanticModel, arguments[0].Expression, cancellationToken);
-                if (exceptionType == null)
+                if (exceptionType is null)
                     return document;
 
                 var action = InvokeFluentActionsInvoking(compilation, generator, arguments[1].Expression);
@@ -332,7 +332,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             else if (methodName is "CatchAsync" && method.TypeArguments.Length == 0 && method.Parameters[0].Type.Equals(typeSymbol, SymbolEqualityComparer.Default))
             {
                 var exceptionType = GetConstantTypeValue(semanticModel, arguments[0].Expression, cancellationToken);
-                if (exceptionType == null)
+                if (exceptionType is null)
                     return document;
 
                 var action = InvokeFluentActionsInvoking(compilation, generator, arguments[1].Expression);
@@ -354,7 +354,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             else if (methodName is "Throws" && method.TypeArguments.Length == 0 && method.Parameters[0].Type.Equals(typeSymbol, SymbolEqualityComparer.Default))
             {
                 var exceptionType = GetConstantTypeValue(semanticModel, arguments[0].Expression, cancellationToken);
-                if (exceptionType == null)
+                if (exceptionType is null)
                     return document;
 
                 var action = InvokeFluentActionsInvoking(compilation, generator, arguments[1].Expression);
@@ -376,7 +376,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             else if (methodName is "ThrowsAsync" && method.TypeArguments.Length == 0 && method.Parameters[0].Type.Equals(typeSymbol, SymbolEqualityComparer.Default))
             {
                 var exceptionType = GetConstantTypeValue(semanticModel, arguments[0].Expression, cancellationToken);
-                if (exceptionType == null)
+                if (exceptionType is null)
                     return document;
 
                 var action = InvokeFluentActionsInvoking(compilation, generator, arguments[1].Expression);
@@ -482,7 +482,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                             var (isCollection, isMigrationSupported) = IsCollection(arguments[0]);
                             if (isMigrationSupported)
                             {
-                                var replacementMethodName = isCollection ? "Equal": "Be";
+                                var replacementMethodName = isCollection ? "Equal" : "Be";
                                 result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
                             }
                         }
@@ -596,17 +596,17 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                     (bool isCollection, bool isMigrationSupported) IsCollection(ArgumentSyntax argumentSyntax)
                     {
                         var argumentTypeSymbol = semanticModel.GetTypeInfo(argumentSyntax.Expression, cancellationToken).Type;
-                        if (argumentTypeSymbol == null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
+                        if (argumentTypeSymbol is null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
                             return (false, true);
 
-                        var isCollection = 
+                        var isCollection =
                                argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_IEnumerable
-                            || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => 
+                            || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i =>
                                 i.SpecialType == SpecialType.System_Collections_IEnumerable);
 
                         var isSupportedCollection = argumentTypeSymbol.OriginalDefinition.TypeKind == TypeKind.Array
                             || argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T
-                            || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i => 
+                            || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i =>
                                 i.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T);
 
                         var isMigrationSupported = !isCollection || isSupportedCollection;
@@ -628,7 +628,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                             if (i == 0)
                                 return SymbolEqualityComparer.Default.Equals(member.Member.ContainingType, root);
 
-                            if (member.Instance == null)
+                            if (member.Instance is null)
                                 break;
 
                             currentOp = member.Instance;
@@ -646,7 +646,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             if (currentOp is IInvocationOperation invocation)
                             {
-                                if (argument != null || invocation.Arguments.Length != 1)
+                                if (argument is not null || invocation.Arguments.Length != 1)
                                     return false;
 
                                 if (invocation.TargetMethod.Name != memberNames[i])
@@ -670,7 +670,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                                 if (i == 0)
                                     return SymbolEqualityComparer.Default.Equals(member.Member.ContainingType, root);
 
-                                if (member.Instance == null)
+                                if (member.Instance is null)
                                     break;
 
                                 currentOp = member.Instance;
@@ -689,7 +689,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         {
                             if (currentOp is IInvocationOperation invocation)
                             {
-                                if (typeArgument != null || invocation.TargetMethod.TypeArguments.Length == 0)
+                                if (typeArgument is not null || invocation.TargetMethod.TypeArguments.Length == 0)
                                     return false;
 
                                 if (invocation.TargetMethod.Name != memberNames[i])
@@ -713,7 +713,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                                 if (i == 0)
                                     return SymbolEqualityComparer.Default.Equals(member.Member.ContainingType, root);
 
-                                if (member.Instance == null)
+                                if (member.Instance is null)
                                     break;
 
                                 currentOp = member.Instance;
@@ -829,7 +829,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         }
 
         // Not yet supported
-        if (result == null)
+        if (result is null)
             return document;
 
         // Rewrite document
@@ -864,49 +864,39 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         return null;
     }
 
-    private static ExpressionSyntax NumericLiteral(int value)
+    private static LiteralExpressionSyntax NumericLiteral(int value)
     {
         return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(value));
     }
 
-    private static IEnumerable<ArgumentSyntax> ArgumentList(ArgumentSyntax argument, IEnumerable<ArgumentSyntax> arguments)
+    private static List<ArgumentSyntax> ArgumentList(ArgumentSyntax argument, IEnumerable<ArgumentSyntax> arguments)
     {
         return ArgumentList(argument.Expression, arguments);
     }
 
-    private static IEnumerable<ArgumentSyntax> ArgumentList(ExpressionSyntax expression, IEnumerable<ArgumentSyntax> arguments)
+    private static List<ArgumentSyntax> ArgumentList(ExpressionSyntax expression, IEnumerable<ArgumentSyntax> arguments)
     {
-        var list = new List<ArgumentSyntax>();
-        list.Add(Argument(expression));
-        list.AddRange(arguments);
-        return list;
+        return [Argument(expression), .. arguments];
     }
 
-    private sealed class Rewriter
+    private sealed class Rewriter(bool isDynamic)
     {
-        private readonly bool _isDynamic;
-
-        public Rewriter(bool isDynamic)
-        {
-            _isDynamic = isDynamic;
-        }
-
-        public SyntaxNode UsingShould(ArgumentSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
+        public InvocationExpressionSyntax UsingShould(ArgumentSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
         {
             return UsingShould(subject.Expression, methodName, genericParameterType: null, arguments);
         }
 
-        public SyntaxNode UsingShould(ExpressionSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
+        public InvocationExpressionSyntax UsingShould(ExpressionSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
         {
             return UsingShould(subject, methodName, genericParameterType: null, arguments);
         }
 
-        public SyntaxNode UsingShould(ArgumentSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
+        public InvocationExpressionSyntax UsingShould(ArgumentSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
         {
             return UsingShould(subject.Expression, methodName, genericParameterType, arguments);
         }
 
-        public SyntaxNode UsingShould(ExpressionSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
+        public InvocationExpressionSyntax UsingShould(ExpressionSyntax subject, string methodName, TypeSyntax genericParameterType, IEnumerable<ArgumentSyntax> arguments)
         {
             var should = InvokeShould(subject);
             should = InvocationExpression(MemberAccessExpression(should, methodName, genericParameterType));
@@ -914,7 +904,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             return should;
         }
 
-        public SyntaxNode TrueOrFalse(SeparatedSyntaxList<ArgumentSyntax> originalArguments, string methodName)
+        public InvocationExpressionSyntax TrueOrFalse(SeparatedSyntaxList<ArgumentSyntax> originalArguments, string methodName)
         {
             return UsingShould(originalArguments[0], "Be" + methodName, originalArguments.Skip(1).ToArray());
         }
@@ -922,12 +912,12 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         private InvocationExpressionSyntax InvokeShould(ExpressionSyntax expression)
         {
             var expr = expression;
-            if (_isDynamic)
+            if (isDynamic)
             {
                 expr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName("object"), expression);
             }
             return InvocationExpression(
-                    MemberAccessExpression(Parenthesize(expr), "Should"))
+                    MemberAccessExpression(expr.Parenthesize(), "Should"))
                 .WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }
@@ -942,7 +932,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
     private static MemberAccessExpressionSyntax MemberAccessExpression(ExpressionSyntax expression, string memberName, TypeSyntax genericParameterType)
     {
         SimpleNameSyntax name;
-        if (genericParameterType != null)
+        if (genericParameterType is not null)
         {
             name = GenericName(memberName).WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList(genericParameterType)));
         }
@@ -962,10 +952,5 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                     IdentifierName(memberName));
     }
 
-    private static ExpressionSyntax Parenthesize(ExpressionSyntax expression)
-    {
-        var withoutTrivia = expression.WithoutTrivia();
-        var parenthesized = ParenthesizedExpression(withoutTrivia);
-        return parenthesized.WithTriviaFrom(expression).WithAdditionalAnnotations(Simplifier.Annotation);
-    }
+
 }

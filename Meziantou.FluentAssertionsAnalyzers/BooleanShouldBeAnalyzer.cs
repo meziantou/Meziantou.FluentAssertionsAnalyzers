@@ -33,24 +33,21 @@ public sealed class BooleanShouldBeAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-        context.RegisterCompilationStartAction(ctx =>
+        context.RegisterCompilationStartAction(context =>
         {
-            if (ctx.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.BooleanAssertions") is null)
+            var booleanAssertionsOfTSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.BooleanAssertions`1");
+            var booleanAssertionsSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.BooleanAssertions");
+            if (booleanAssertionsSymbol is null || booleanAssertionsOfTSymbol is null)
                 return;
 
-            ctx.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
+            var booleanAssertionsFullSymbol = booleanAssertionsOfTSymbol.Construct(booleanAssertionsSymbol);
+
+            context.RegisterOperationAction(context => AnalyzeInvocation(context, booleanAssertionsFullSymbol), OperationKind.Invocation);
         });
     }
 
-    private void AnalyzeInvocation(OperationAnalysisContext context)
+    private static void AnalyzeInvocation(OperationAnalysisContext context, INamedTypeSymbol booleanAssertionsFullSymbol)
     {
-        var booleanAssertionsOfTSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.BooleanAssertions`1");
-        var booleanAssertionsSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.BooleanAssertions");
-        if (booleanAssertionsSymbol is null || booleanAssertionsOfTSymbol is null)
-            return;
-
-        var booleanAssertionsFullSymbol = booleanAssertionsOfTSymbol.Construct(booleanAssertionsSymbol);
-
         var op = (IInvocationOperation)context.Operation;
         if (op.TargetMethod.Name is "Be" or "NotBe" && op.TargetMethod.ContainingType.Equals(booleanAssertionsFullSymbol, SymbolEqualityComparer.Default) && op.Arguments.Length >= 1 && op.Arguments[0].Value.ConstantValue.HasValue && op.Arguments[0].Value.ConstantValue.Value is bool constant)
         {

@@ -72,24 +72,21 @@ public sealed class NullableBooleanShouldBeAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-        context.RegisterCompilationStartAction(ctx =>
+        context.RegisterCompilationStartAction(context =>
         {
-            if (ctx.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.NullableBooleanAssertions") is null)
+            var booleanAssertionsOfTSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.NullableBooleanAssertions`1");
+            var booleanAssertionsSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.NullableBooleanAssertions");
+            if (booleanAssertionsSymbol is null || booleanAssertionsOfTSymbol is null)
                 return;
 
-            ctx.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
+            var booleanAssertionsFullSymbol = booleanAssertionsOfTSymbol.Construct(booleanAssertionsSymbol);
+
+            context.RegisterOperationAction(context => AnalyzeInvocation(context, booleanAssertionsFullSymbol), OperationKind.Invocation);
         });
     }
 
-    private void AnalyzeInvocation(OperationAnalysisContext context)
+    private static void AnalyzeInvocation(OperationAnalysisContext context, INamedTypeSymbol booleanAssertionsFullSymbol)
     {
-        var booleanAssertionsOfTSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.NullableBooleanAssertions`1");
-        var booleanAssertionsSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.NullableBooleanAssertions");
-        if (booleanAssertionsSymbol is null || booleanAssertionsOfTSymbol is null)
-            return;
-
-        var booleanAssertionsFullSymbol = booleanAssertionsOfTSymbol.Construct(booleanAssertionsSymbol);
-
         var op = (IInvocationOperation)context.Operation;
         if (op.TargetMethod.Name is "Be" && op.TargetMethod.ContainingType.Equals(booleanAssertionsFullSymbol, SymbolEqualityComparer.Default) && op.Arguments.Length >= 1)
         {

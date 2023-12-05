@@ -33,23 +33,21 @@ public sealed class StringShouldBeAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-        context.RegisterCompilationStartAction(ctx =>
+        context.RegisterCompilationStartAction(context =>
         {
-            if (ctx.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.StringAssertions") is null)
+            var assertionsOfTSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.StringAssertions`1");
+            var assertionsSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.StringAssertions");
+            if ((assertionsSymbol, assertionsOfTSymbol) is (null, null))
                 return;
 
-            ctx.RegisterOperationAction(AnalyzeInvocation, OperationKind.Invocation);
+            var assertionsFullSymbol = assertionsOfTSymbol.Construct(assertionsSymbol);
+
+            context.RegisterOperationAction(context => AnalyzeInvocation(context, assertionsFullSymbol), OperationKind.Invocation);
         });
     }
 
-    private void AnalyzeInvocation(OperationAnalysisContext context)
+    private static void AnalyzeInvocation(OperationAnalysisContext context, INamedTypeSymbol assertionsFullSymbol)
     {
-        var assertionsOfTSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.StringAssertions`1");
-        var assertionsSymbol = context.Compilation.GetTypeByMetadataName("FluentAssertions.Primitives.StringAssertions");
-        if (assertionsSymbol is null || assertionsOfTSymbol is null)
-            return;
-
-        var assertionsFullSymbol = assertionsOfTSymbol.Construct(assertionsSymbol);
 
         var op = (IInvocationOperation)context.Operation;
         if (op.TargetMethod.Name == "Be" && op.TargetMethod.ContainingType.Equals(assertionsFullSymbol, SymbolEqualityComparer.Default) && op.Arguments.Length >= 1)
@@ -78,4 +76,3 @@ public sealed class StringShouldBeAnalyzer : DiagnosticAnalyzer
         }
     }
 }
-

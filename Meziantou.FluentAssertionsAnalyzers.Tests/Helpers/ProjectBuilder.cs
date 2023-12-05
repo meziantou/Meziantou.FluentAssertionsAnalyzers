@@ -50,7 +50,7 @@ public sealed partial class ProjectBuilder
             {
                 Directory.CreateDirectory(tempFolder);
                 using var httpClient = new HttpClient();
-                using var stream = await httpClient.GetStreamAsync(new Uri($"https://www.nuget.org/api/v2/package/{packageName}/{version}")).ConfigureAwait(false);
+                await using var stream = await httpClient.GetStreamAsync(new Uri($"https://www.nuget.org/api/v2/package/{packageName}/{version}")).ConfigureAwait(false);
                 using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
 
                 foreach (var entry in zip.Entries.Where(file => file.FullName.StartsWith(path, StringComparison.Ordinal)))
@@ -70,7 +70,7 @@ public sealed partial class ProjectBuilder
 
                 try
                 {
-                    using var stream = File.OpenRead(dll);
+                    await using var stream = File.OpenRead(dll);
                     using var peFile = new PEReader(stream);
                     var metadataReader = peFile.GetMetadataReader();
                     result.Add(dll);
@@ -81,7 +81,7 @@ public sealed partial class ProjectBuilder
             }
 
             Assert.NotEmpty(result);
-            return result.ToArray();
+            return [.. result];
         }
     }
 

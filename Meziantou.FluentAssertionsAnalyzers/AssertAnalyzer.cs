@@ -42,113 +42,138 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
-        context.RegisterCompilationStartAction(ctx =>
+        context.RegisterCompilationStartAction(context =>
         {
-            if (ctx.Compilation.GetTypeByMetadataName("FluentAssertions.ObjectAssertionsExtensions") is null)
+            if (context.Compilation.GetTypeByMetadataName("FluentAssertions.ObjectAssertionsExtensions") is null)
                 return;
 
-            if (ctx.Compilation.GetTypeByMetadataName("Xunit.Assert") is not null)
+            var analyzerContext = new AnalyzerContext(context.Compilation);
+
+            if (analyzerContext.IsXUnitAvailable)
             {
-                ctx.RegisterOperationAction(AnalyzeXunitInvocation, OperationKind.Invocation);
+                context.RegisterOperationAction(analyzerContext.AnalyzeXunitInvocation, OperationKind.Invocation);
             }
 
-            if (ctx.Compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.Assert") is not null)
+            if (analyzerContext.IsMSTestsAvailable)
             {
-                ctx.RegisterOperationAction(AnalyzeMsTestInvocation, OperationKind.Invocation);
-                ctx.RegisterOperationAction(AnalyzeMsTestThrow, OperationKind.Throw);
+                context.RegisterOperationAction(analyzerContext.AnalyzeMsTestInvocation, OperationKind.Invocation);
+                context.RegisterOperationAction(analyzerContext.AnalyzeMsTestThrow, OperationKind.Throw);
             }
 
-            if (ctx.Compilation.GetTypeByMetadataName("NUnit.Framework.AssertionException") is not null)
+            if (analyzerContext.IsNUnitAvailable)
             {
-                ctx.RegisterOperationAction(AnalyzeNunitInvocation, OperationKind.Invocation);
-                ctx.RegisterOperationAction(AnalyzeNunitDynamicInvocation, OperationKind.DynamicInvocation);
-                ctx.RegisterOperationAction(AnalyzeNunitThrow, OperationKind.Throw);
+                context.RegisterOperationAction(analyzerContext.AnalyzeNunitInvocation, OperationKind.Invocation);
+                context.RegisterOperationAction(analyzerContext.AnalyzeNunitDynamicInvocation, OperationKind.DynamicInvocation);
+                context.RegisterOperationAction(analyzerContext.AnalyzeNunitThrow, OperationKind.Throw);
             }
         });
     }
 
-    private void AnalyzeXunitInvocation(OperationAnalysisContext context)
+    private sealed class AnalyzerContext(Compilation compilation)
     {
-        var op = (IInvocationOperation)context.Operation;
-        if (op.TargetMethod.ContainingType.Equals(context.Compilation.GetTypeByMetadataName("Xunit.Assert"), SymbolEqualityComparer.Default))
+        private readonly INamedTypeSymbol _xunitAssertSymbol = compilation.GetTypeByMetadataName("Xunit.Assert");
+        
+        private readonly INamedTypeSymbol _msTestsAssertSymbol = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.Assert");
+        private readonly INamedTypeSymbol _msTestsStringAssertSymbol = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.StringAssert");
+        private readonly INamedTypeSymbol _msTestsCollectionAssertSymbol = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.CollectionAssert");
+        private readonly INamedTypeSymbol _msTestsUnitTestAssertExceptionSymbol = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.UnitTestAssertException");
+
+        private readonly INamedTypeSymbol _nunitAssertionExceptionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.AssertionException");
+        private readonly INamedTypeSymbol _nunitAssertSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Assert");
+        private readonly INamedTypeSymbol _nunitCollectionAssertSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.CollectionAssert");
+        private readonly INamedTypeSymbol _nunitDirectoryAssertSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.DirectoryAssert");
+        private readonly INamedTypeSymbol _nunitFileAssertSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.FileAssert");
+        private readonly INamedTypeSymbol _nunitStringAssertSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.StringAssert");
+        private readonly INamedTypeSymbol _nunitClassicAssertSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.Legacy.ClassicAssert");
+        private readonly INamedTypeSymbol _nunitResultStateExceptionSymbol = compilation.GetTypeByMetadataName("NUnit.Framework.ResultStateException");
+
+        public bool IsMSTestsAvailable => _msTestsAssertSymbol is not null;
+        public bool IsNUnitAvailable => _nunitAssertionExceptionSymbol is not null;
+        public bool IsXUnitAvailable => _xunitAssertSymbol is not null;
+
+        public void AnalyzeXunitInvocation(OperationAnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(XunitRule, op.Syntax.GetLocation()));
+            var op = (IInvocationOperation)context.Operation;
+            if (op.TargetMethod.ContainingType.Equals(_xunitAssertSymbol, SymbolEqualityComparer.Default))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(XunitRule, op.Syntax.GetLocation()));
+            }
         }
-    }
 
-    private void AnalyzeMsTestInvocation(OperationAnalysisContext context)
-    {
-        var op = (IInvocationOperation)context.Operation;
-        if (IsMsTestAssertClass(context.Compilation, op.TargetMethod.ContainingType))
+        public void AnalyzeMsTestInvocation(OperationAnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(MSTestsRule, op.Syntax.GetLocation()));
+            var op = (IInvocationOperation)context.Operation;
+            if (IsMsTestAssertClass(op.TargetMethod.ContainingType))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(MSTestsRule, op.Syntax.GetLocation()));
+            }
         }
-    }
 
-    private void AnalyzeMsTestThrow(OperationAnalysisContext context)
-    {
-        var op = (IThrowOperation)context.Operation;
-        if (op.Exception != null && op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(context.Compilation, "Microsoft.VisualStudio.TestTools.UnitTesting.UnitTestAssertException"))
+        public void AnalyzeMsTestThrow(OperationAnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(MSTestsRule, op.Syntax.GetLocation()));
+            var op = (IThrowOperation)context.Operation;
+            if (op.Exception is not null && op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(_msTestsUnitTestAssertExceptionSymbol))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(MSTestsRule, op.Syntax.GetLocation()));
+            }
         }
-    }
 
-    private void AnalyzeNunitInvocation(OperationAnalysisContext context)
-    {
-        var op = (IInvocationOperation)context.Operation;
-        if (IsNunitAssertClass(context.Compilation, op.TargetMethod.ContainingType))
+        public void AnalyzeNunitInvocation(OperationAnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
+            var op = (IInvocationOperation)context.Operation;
+            if (IsNunitAssertClass(op.TargetMethod.ContainingType))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
+            }
         }
-    }
 
-    private void AnalyzeNunitDynamicInvocation(OperationAnalysisContext context)
-    {
-        var op = (IDynamicInvocationOperation)context.Operation;
-
-        if (op.Arguments.Length < 2)
-            return;
-
-        var containingType = ((op.Arguments[1]
-                    .Parent as IDynamicInvocationOperation)?
-                    .Operation as IDynamicMemberReferenceOperation)?
-                    .ContainingType;
-        if (IsNunitAssertClass(context.Compilation, containingType))
+        public void AnalyzeNunitDynamicInvocation(OperationAnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
-        }
-    }
+            var op = (IDynamicInvocationOperation)context.Operation;
 
-    private void AnalyzeNunitThrow(OperationAnalysisContext context)
-    {
-        var op = (IThrowOperation)context.Operation;
-        if (op.Exception != null && op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(context.Compilation, "NUnit.Framework.ResultStateException"))
+            if (op.Arguments.Length < 2)
+                return;
+
+            var containingType = ((op.Arguments[1]
+                        .Parent as IDynamicInvocationOperation)?
+                        .Operation as IDynamicMemberReferenceOperation)?
+                        .ContainingType;
+            if (IsNunitAssertClass(containingType))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
+            }
+        }
+
+        public void AnalyzeNunitThrow(OperationAnalysisContext context)
         {
-            context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
+            var op = (IThrowOperation)context.Operation;
+            if (op.Exception is not null && op.Exception.RemoveImplicitConversion().Type.IsOrInheritsFrom(_nunitResultStateExceptionSymbol))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
+            }
         }
-    }
 
-    private static bool IsMsTestAssertClass(Compilation compilation, ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol == null)
-            return false;
+        private bool IsMsTestAssertClass(ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol is null)
+                return false;
 
-        return typeSymbol.Equals(compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.Assert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.StringAssert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.CollectionAssert"), SymbolEqualityComparer.Default);
-    }
+            return typeSymbol.Equals(_msTestsAssertSymbol, SymbolEqualityComparer.Default)
+                || typeSymbol.Equals(_msTestsStringAssertSymbol, SymbolEqualityComparer.Default)
+                || typeSymbol.Equals(_msTestsCollectionAssertSymbol, SymbolEqualityComparer.Default);
+        }
 
-    private static bool IsNunitAssertClass(Compilation compilation, ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol == null)
-            return false;
+        private bool IsNunitAssertClass(ITypeSymbol typeSymbol)
+        {
+            if (typeSymbol is null)
+                return false;
 
-        return typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.Assert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.CollectionAssert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.DirectoryAssert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.FileAssert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.StringAssert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.Legacy.ClassicAssert"), SymbolEqualityComparer.Default);
+            return typeSymbol.Equals(_nunitAssertSymbol, SymbolEqualityComparer.Default)
+                || typeSymbol.Equals(_nunitCollectionAssertSymbol, SymbolEqualityComparer.Default)
+                || typeSymbol.Equals(_nunitDirectoryAssertSymbol, SymbolEqualityComparer.Default)
+                || typeSymbol.Equals(_nunitFileAssertSymbol, SymbolEqualityComparer.Default)
+                || typeSymbol.Equals(_nunitStringAssertSymbol, SymbolEqualityComparer.Default)
+                || typeSymbol.Equals(_nunitClassicAssertSymbol, SymbolEqualityComparer.Default);
+        }
     }
 }

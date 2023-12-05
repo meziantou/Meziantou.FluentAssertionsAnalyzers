@@ -24,7 +24,7 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         var nodeToFix = root?.FindNode(context.Span, getInnermostNodeForTie: true);
-        if (nodeToFix == null)
+        if (nodeToFix is null)
             return;
 
         const string Title = "Use FluentAssertions";
@@ -44,7 +44,7 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var originalMethod = (InvocationExpressionSyntax)nodeToFix;
         var originalArguments = originalMethod.ArgumentList.Arguments;
         var method = (IMethodSymbol)editor.SemanticModel.GetSymbolInfo(originalMethod, cancellationToken).Symbol;
-        if (method == null)
+        if (method is null)
             return document;
 
         var methodName = method.Name;
@@ -392,7 +392,7 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
         }
     }
 
-    private static SyntaxNode RewriteTrueOrFalse(InvocationExpressionSyntax originalMethod, SeparatedSyntaxList<ArgumentSyntax> originalArguments, string methodName)
+    private static InvocationExpressionSyntax RewriteTrueOrFalse(InvocationExpressionSyntax originalMethod, SeparatedSyntaxList<ArgumentSyntax> originalArguments, string methodName)
     {
         var should = InvokeShould(originalArguments[0]);
         should = InvocationExpression(MemberAccessExpression(should, "Be" + methodName));
@@ -410,7 +410,7 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
     private static InvocationExpressionSyntax InvokeShould(ExpressionSyntax expression)
     {
         return InvocationExpression(
-                MemberAccessExpression(Parenthesize(expression), "Should"));
+                MemberAccessExpression(expression.Parenthesize(), "Should"));
     }
 
     private static MemberAccessExpressionSyntax MemberAccessExpression(ExpressionSyntax expression, string memberName, TypeSyntax genericParameterType)
@@ -438,13 +438,6 @@ public sealed class XUnitAssertAnalyzerCodeFixProvider : CodeFixProvider
         }
 
         return result;
-    }
-
-    private static ExpressionSyntax Parenthesize(ExpressionSyntax expression)
-    {
-        var withoutTrivia = expression.WithoutTrivia();
-        var parenthesized = ParenthesizedExpression(withoutTrivia);
-        return parenthesized.WithTriviaFrom(expression).WithAdditionalAnnotations(Simplifier.Annotation);
     }
 
     private static ArgumentListSyntax ArgumentList(params ExpressionSyntax[] expressions)
