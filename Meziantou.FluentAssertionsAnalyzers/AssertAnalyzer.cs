@@ -148,6 +148,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
             || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.CollectionAssert"), SymbolEqualityComparer.Default)
             || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.DirectoryAssert"), SymbolEqualityComparer.Default)
             || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.FileAssert"), SymbolEqualityComparer.Default)
-            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.StringAssert"), SymbolEqualityComparer.Default);
+            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.StringAssert"), SymbolEqualityComparer.Default)
+            || typeSymbol.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.Legacy.ClassicAssert"), SymbolEqualityComparer.Default);
     }
 }

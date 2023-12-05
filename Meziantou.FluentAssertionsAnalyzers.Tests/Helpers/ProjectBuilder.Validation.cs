@@ -56,10 +56,10 @@ public sealed partial class ProjectBuilder
     }
 
     [DebuggerStepThrough]
-    private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, IList<DiagnosticResult> expectedResults)
+    private static void VerifyDiagnosticResults(IReadOnlyCollection<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, IList<DiagnosticResult> expectedResults)
     {
         var expectedCount = expectedResults.Count;
-        var actualCount = actualResults.Count();
+        var actualCount = actualResults.Count;
 
         if (expectedCount != actualCount)
         {
@@ -238,7 +238,9 @@ public sealed partial class ProjectBuilder
             // Enable diagnostic
             options = options.WithSpecificDiagnosticOptions(analyzer.SupportedDiagnostics.Select(diag => new KeyValuePair<string, ReportDiagnostic>(diag.Id, GetReportDiagnostic(diag))));
 
-            var compilation = (await project.GetCompilationAsync().ConfigureAwait(false)).WithOptions(options);
+            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
+            Assert.NotNull(compilation);
+            compilation = compilation.WithOptions(options);
             if (compileSolution)
             {
                 using var ms = new MemoryStream();

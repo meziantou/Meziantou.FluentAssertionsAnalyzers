@@ -173,7 +173,8 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
 
         SyntaxNode result = null;
         var addImports = true;
-        if (method.ContainingType.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.Assert"), SymbolEqualityComparer.Default))
+        if (method.ContainingType.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.Assert"), SymbolEqualityComparer.Default)
+            || method.ContainingType.Equals(compilation.GetTypeByMetadataName("NUnit.Framework.Legacy.ClassicAssert"), SymbolEqualityComparer.Default))
         {
             if (methodName is "AreEqual")
             {
@@ -881,7 +882,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         return list;
     }
 
-    private class Rewriter
+    private sealed class Rewriter
     {
         private readonly bool _isDynamic;
 
