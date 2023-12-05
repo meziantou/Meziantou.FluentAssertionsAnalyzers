@@ -72,7 +72,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
     private sealed class AnalyzerContext(Compilation compilation)
     {
         private readonly INamedTypeSymbol _xunitAssertSymbol = compilation.GetTypeByMetadataName("Xunit.Assert");
-        
+
         private readonly INamedTypeSymbol _msTestsAssertSymbol = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.Assert");
         private readonly INamedTypeSymbol _msTestsStringAssertSymbol = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.StringAssert");
         private readonly INamedTypeSymbol _msTestsCollectionAssertSymbol = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.CollectionAssert");
@@ -123,6 +123,9 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
             var op = (IInvocationOperation)context.Operation;
             if (IsNunitAssertClass(op.TargetMethod.ContainingType))
             {
+                if (op.TargetMethod.Name is "Inconclusive")
+                    return;
+
                 context.ReportDiagnostic(Diagnostic.Create(NUnitRule, op.Syntax.GetLocation()));
             }
         }

@@ -16,11 +16,11 @@ public sealed class NUnit3ToFluentAssertionsAnalyzerUnitTests
             .AddFluentAssertionsApi();
     }
 
-    private static Task Assert(string sourceCode, string fix)
+    private static Task Assert(string sourceCode, string fix = null)
     {
         return CreateProjectBuilder()
                   .WithSourceCode(sourceCode)
-                  .ShouldFixCodeWith(fix)
+                  .ShouldFixCodeWith(fix ?? sourceCode)
                   .ValidateAsync();
     }
 
@@ -47,6 +47,23 @@ class Test
     public void MyTest()
     {
         return;
+    }
+}
+""");
+    }
+    
+    [Fact]
+    public Task Assert_Inconclusive_NoReport()
+    {
+        return Assert(
+"""
+using NUnit.Framework;
+
+class Test
+{
+    public void MyTest()
+    {
+        Assert.Inconclusive();
     }
 }
 """);
