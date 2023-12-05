@@ -97,7 +97,7 @@ public sealed partial class ProjectBuilder
 
     public ProjectBuilder AddMSTestApi() => AddNuGetReference("MSTest.TestFramework", "2.2.10", "lib/netstandard1.0/");
 
-    public ProjectBuilder AddNUnitApi() => AddNuGetReference("NUnit", "3.13.3", "lib/netstandard2.0/");
+    public ProjectBuilder AddNUnit3Api() => AddNuGetReference("NUnit", "3.13.3", "lib/netstandard2.0/");
     
     public ProjectBuilder AddNUnit4Api() => AddNuGetReference("NUnit", "4.0.1", "lib/net6.0/");
 
