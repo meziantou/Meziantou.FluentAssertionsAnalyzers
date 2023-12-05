@@ -882,8 +882,15 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         return list;
     }
 
-    private sealed class Rewriter(bool isDynamic)
+    private sealed class Rewriter
     {
+        private readonly bool _isDynamic;
+
+        public Rewriter(bool isDynamic)
+        {
+            _isDynamic = isDynamic;
+        }
+
         public SyntaxNode UsingShould(ArgumentSyntax subject, string methodName, IEnumerable<ArgumentSyntax> arguments)
         {
             return UsingShould(subject.Expression, methodName, genericParameterType: null, arguments);
@@ -915,7 +922,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         private InvocationExpressionSyntax InvokeShould(ExpressionSyntax expression)
         {
             var expr = expression;
-            if (isDynamic)
+            if (_isDynamic)
             {
                 expr = SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName("object"), expression);
             }
