@@ -47,7 +47,7 @@ public sealed class NullableBooleanShouldBeAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor ShouldBeNullRule = new(
       "MFA012",
       title: "Simplify Should().Be(null)",
-      messageFormat: "Simplify Should().tBe(null)",
+      messageFormat: "Simplify Should().Be(null)",
       description: "",
       category: "Design",
       defaultSeverity: DiagnosticSeverity.Info,
