@@ -178,18 +178,17 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         {
             if (methodName is "AreEqual")
             {
-                if (method.Parameters[0].Type.SpecialType == SpecialType.System_Double)
-                {
-                    result = rewrite.UsingShould(arguments[1], "BeApproximately", ArgumentList(arguments[0], arguments.Skip(2)));
-                }
-                else
-                {
-                    result = rewrite.UsingShould(arguments[1], "Be", ArgumentList(arguments[0], arguments.Skip(2)));
-                }
+                var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
+                
+                var useBeApproximately = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type?.SpecialType == SpecialType.System_Double 
+                    && arguments.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText is "delta") is not null;
+                
+                result = rewrite.UsingShould(right, useBeApproximately ? "BeApproximately" : "Be", ArgumentList(left, arguments.Skip(2)));
             }
             else if (methodName is "AreNotEqual")
             {
-                result = rewrite.UsingShould(arguments[1], "NotBe", ArgumentList(arguments[0], arguments.Skip(2)));
+                var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
+                result = rewrite.UsingShould(right, "NotBe", ArgumentList(left, arguments.Skip(2)));
             }
             else if (methodName is "AreSame")
             {
@@ -853,6 +852,28 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         }
 
         return document;
+    }
+
+    private static (ArgumentSyntax left, ArgumentSyntax right) GetLeftRight(SeparatedSyntaxList<ArgumentSyntax> arguments, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var left = arguments[0];
+        var right = arguments[1];
+        var leftValue = semanticModel.GetConstantValue(left.Expression, cancellationToken);
+        var rightValue = semanticModel.GetConstantValue(right.Expression, cancellationToken);
+        
+        // Don't invert if both are constant
+        if (leftValue.HasValue && rightValue.HasValue)
+        {
+            return (left, right);
+        }
+        
+        // Invert if right is constant
+        if (rightValue.HasValue)
+        {
+            return (right, left);
+        }
+
+        return (left, right);
     }
 
     private static ITypeSymbol GetConstantTypeValue(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
