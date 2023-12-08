@@ -564,4 +564,68 @@ class Test
               }
               """);
     }
+
+    [Theory]
+    [InlineData(@"ClassicAssert.AreEqual(test, 6)", @"test.Should().Be(6)")]
+    [InlineData(@"ClassicAssert.AreNotEqual(test, 6)", @"test.Should().NotBe(6)")]
+    [InlineData(@"ClassicAssert.AreEqual(test, ""test"")", @"test.Should().Be(""test"")")]
+    [InlineData(@"ClassicAssert.AreNotEqual(test, ""test"")", @"test.Should().NotBe(""test"")")]
+    public Task Assert_Inverted_Asserts(string code, string fix)
+    {
+        return Assert(
+            $$"""
+              using NUnit.Framework.Legacy;
+
+              class Test
+              {
+                  public void MyTest(object test)
+                  {
+                      [|{{code}}|];
+                  }
+              }
+              """,
+            $$"""
+              using FluentAssertions;
+              using NUnit.Framework.Legacy;
+
+              class Test
+              {
+                  public void MyTest(object test)
+                  {
+                      {{fix}};
+                  }
+              }
+              """);
+    }
+
+    [Theory]
+    [InlineData(@"ClassicAssert.AreEqual(test, 6.0, delta: 2.0)", @"test.Should().BeApproximately(6.0, 2.0)")]
+    [InlineData(@"ClassicAssert.AreEqual(test, 6.0)", @"test.Should().Be(6.0)")]
+    public Task Assert_Inverted_Asserts_double(string code, string fix)
+    {
+        return Assert(
+            $$"""
+              using NUnit.Framework.Legacy;
+
+              class Test
+              {
+                  public void MyTest(double test)
+                  {
+                      [|{{code}}|];
+                  }
+              }
+              """,
+            $$"""
+              using FluentAssertions;
+              using NUnit.Framework.Legacy;
+
+              class Test
+              {
+                  public void MyTest(double test)
+                  {
+                      {{fix}};
+                  }
+              }
+              """);
+    }
 }
