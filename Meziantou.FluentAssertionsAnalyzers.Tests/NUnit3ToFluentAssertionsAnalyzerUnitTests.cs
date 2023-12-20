@@ -317,6 +317,9 @@ class Test
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d)", @"((double?)null).Should().BeApproximately(0d, 2d)")]
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d, ""because"")", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"")")]
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d, ""because"", 1, 2)", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"", 1, 2)")]
+    
+    [InlineData(@"Assert.AreEqual(0f, (float?)null, delta: 0.1f)", @"((float?)null).Should().BeApproximately(0f, 0.1f)")]
+    [InlineData(@"Assert.AreEqual(0f, 1f, delta: 0.1f)", @"1f.Should().BeApproximately(0f, 0.1f)")]
 
     [InlineData(@"Assert.AreNotEqual(""expected"", ""actual"")", @"""actual"".Should().NotBe(""expected"")")]
     [InlineData(@"Assert.AreNotEqual(""expected"", ""actual"", ""because"")", @"""actual"".Should().NotBe(""expected"", ""because"")")]
