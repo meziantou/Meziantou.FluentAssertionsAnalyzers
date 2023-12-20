@@ -661,4 +661,128 @@ class Test
               }
               """);
     }
+
+    [Fact]
+    public Task Assert_AreEqual_arrays()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new int[] { 1, 2, 3 };
+                    [|ClassicAssert.AreEqual(new int[] {}, x)|];
+                }
+            }
+            """,
+            """
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new int[] { 1, 2, 3 };
+                    x.Should().Equal(new int[] {});
+                }
+            }
+            """);
+    }
+    
+    [Fact]
+    public Task Assert_AreEqual_lists()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new System.Collections.Generic.List<int>() { 1, 2, 3 };
+                    [|ClassicAssert.AreEqual(new int[] {}, x)|];
+                }
+            }
+            """,
+            """
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new System.Collections.Generic.List<int>() { 1, 2, 3 };
+                    x.Should().Equal(new int[] {});
+                }
+            }
+            """);
+    }
+    
+    [Fact]
+    public Task Assert_AreNotEqual_arrays()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new int[] { 1, 2, 3 };
+                    [|ClassicAssert.AreNotEqual(new int[] {}, x)|];
+                }
+            }
+            """,
+            """
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new int[] { 1, 2, 3 };
+                    x.Should().NotEqual(new int[] {});
+                }
+            }
+            """);
+    }
+    
+    [Fact]
+    public Task Assert_AreNotEqual_lists()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new System.Collections.Generic.List<int>() { 1, 2, 3 };
+                    [|ClassicAssert.AreNotEqual(new int[] {}, x)|];
+                }
+            }
+            """,
+            """
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = new System.Collections.Generic.List<int>() { 1, 2, 3 };
+                    x.Should().NotEqual(new int[] {});
+                }
+            }
+            """);
+    }
 }
