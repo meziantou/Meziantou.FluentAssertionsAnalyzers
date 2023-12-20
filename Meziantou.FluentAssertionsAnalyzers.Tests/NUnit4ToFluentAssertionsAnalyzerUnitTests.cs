@@ -217,6 +217,8 @@ class Test
     [InlineData(@"ClassicAssert.AreEqual(0d, 1d, delta: 2d)", @"1d.Should().BeApproximately(0d, 2d)")]
     [InlineData(@"ClassicAssert.AreEqual(0d, 1d, delta: 2d, ""because"")", @"1d.Should().BeApproximately(0d, 2d, ""because"")")]
     [InlineData(@"ClassicAssert.AreEqual(0d, 1d, delta: 2d, ""because"", 1, 2)", @"1d.Should().BeApproximately(0d, 2d, ""because"", 1, 2)")]
+    
+    [InlineData(@"ClassicAssert.AreEqual(0f, 1f, delta: 0.1f)", @"1f.Should().BeApproximately(0f, 0.1f)")]
 
     [InlineData(@"ClassicAssert.AreNotEqual(""expected"", ""actual"")", @"""actual"".Should().NotBe(""expected"")")]
     [InlineData(@"ClassicAssert.AreNotEqual(""expected"", ""actual"", ""because"")", @"""actual"".Should().NotBe(""expected"", ""because"")")]
@@ -622,6 +624,37 @@ class Test
               class Test
               {
                   public void MyTest(double test)
+                  {
+                      {{fix}};
+                  }
+              }
+              """);
+    }
+    
+    [Theory]
+    [InlineData(@"ClassicAssert.AreEqual(test, 6.0f, delta: 2.0f)", @"test.Should().BeApproximately(6.0f, 2.0f)")]
+    [InlineData(@"ClassicAssert.AreEqual(test, 6.0f)", @"test.Should().Be(6.0f)")]
+    public Task Assert_Inverted_Asserts_float(string code, string fix)
+    {
+        return Assert(
+            $$"""
+              using NUnit.Framework.Legacy;
+
+              class Test
+              {
+                  public void MyTest(float test)
+                  {
+                      [|{{code}}|];
+                  }
+              }
+              """,
+            $$"""
+              using FluentAssertions;
+              using NUnit.Framework.Legacy;
+
+              class Test
+              {
+                  public void MyTest(float test)
                   {
                       {{fix}};
                   }

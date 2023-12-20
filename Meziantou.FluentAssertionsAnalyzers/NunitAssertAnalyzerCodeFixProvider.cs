@@ -179,9 +179,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             if (methodName is "AreEqual")
             {
                 var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
-                
-                var useBeApproximately = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type?.SpecialType == SpecialType.System_Double 
-                    && arguments.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText is "delta") is not null;
+                var leftType = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type?.SpecialType;
+                var useBeApproximately = leftType is SpecialType.System_Double or SpecialType.System_Single
+                                         && arguments.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText is "delta") is not null;
+
                 
                 result = rewrite.UsingShould(right, useBeApproximately ? "BeApproximately" : "Be", ArgumentList(left, arguments.Skip(2)));
             }
