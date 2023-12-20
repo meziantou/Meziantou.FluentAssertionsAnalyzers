@@ -179,17 +179,31 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             if (methodName is "AreEqual")
             {
                 var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
-                var leftType = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type?.SpecialType;
-                var useBeApproximately = leftType is SpecialType.System_Double or SpecialType.System_Single
-                                         && arguments.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText is "delta") is not null;
-
+                var leftType = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type;
+                if (IsCollection(leftType))
+                {
+                    result = rewrite.UsingShould(right, "Equal", ArgumentList(left, arguments.Skip(2)));
+                }
+                else
+                {
+                    var useBeApproximately = leftType.SpecialType is SpecialType.System_Double or SpecialType.System_Single 
+                                             && arguments.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText is "delta") is not null;
                 
-                result = rewrite.UsingShould(right, useBeApproximately ? "BeApproximately" : "Be", ArgumentList(left, arguments.Skip(2)));
+                    result = rewrite.UsingShould(right, useBeApproximately ? "BeApproximately" : "Be", ArgumentList(left, arguments.Skip(2)));
+                }
             }
             else if (methodName is "AreNotEqual")
             {
                 var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
-                result = rewrite.UsingShould(right, "NotBe", ArgumentList(left, arguments.Skip(2)));
+                var leftType = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type;
+                if (IsCollection(leftType))
+                {
+                    result = rewrite.UsingShould(right, "NotEqual", ArgumentList(left, arguments.Skip(2)));
+                }
+                else
+                {
+                    result = rewrite.UsingShould(right, "NotBe", ArgumentList(left, arguments.Skip(2)));
+                }
             }
             else if (methodName is "AreSame")
             {
@@ -599,10 +613,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                         if (argumentTypeSymbol is null || argumentTypeSymbol.SpecialType == SpecialType.System_String)
                             return (false, true);
 
-                        var isCollection =
-                               argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_IEnumerable
-                            || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i =>
-                                i.SpecialType == SpecialType.System_Collections_IEnumerable);
+                        var isCollection = NunitAssertAnalyzerCodeFixProvider.IsCollection(argumentTypeSymbol);
 
                         var isSupportedCollection = argumentTypeSymbol.OriginalDefinition.TypeKind == TypeKind.Array
                             || argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T
@@ -853,6 +864,16 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         }
 
         return document;
+    }
+
+    private static bool IsCollection(ITypeSymbol argumentTypeSymbol)
+    {
+        if (argumentTypeSymbol.SpecialType == SpecialType.System_String)
+            return false;
+
+        return argumentTypeSymbol.OriginalDefinition.SpecialType == SpecialType.System_Collections_IEnumerable
+               || argumentTypeSymbol.OriginalDefinition.AllInterfaces.Any(i =>
+                   i.SpecialType == SpecialType.System_Collections_IEnumerable);
     }
 
     private static (ArgumentSyntax left, ArgumentSyntax right) GetLeftRight(SeparatedSyntaxList<ArgumentSyntax> arguments, SemanticModel semanticModel, CancellationToken cancellationToken)
