@@ -180,8 +180,9 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             {
                 var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
                 var leftType = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type?.SpecialType;
-                var useBeApproximately = (leftType == SpecialType.System_Double || leftType == SpecialType.System_Single) 
+                var useBeApproximately = leftType is SpecialType.System_Double or SpecialType.System_Single
                                          && arguments.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText is "delta") is not null;
+
                 
                 result = rewrite.UsingShould(right, useBeApproximately ? "BeApproximately" : "Be", ArgumentList(left, arguments.Skip(2)));
             }
