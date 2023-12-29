@@ -20,7 +20,7 @@ public sealed class NUnit3ToFluentAssertionsAnalyzerUnitTests
     {
         return CreateProjectBuilder()
                   .WithSourceCode(sourceCode)
-                  .ShouldFixCodeWith(fix ?? sourceCode)
+                  .ShouldFixCodeWith(fix)
                   .ValidateAsync();
     }
 
@@ -537,7 +537,6 @@ class Test
     [InlineData(@"Assert.Less(0d, 1, ""because"")", @"0d.Should().BeLessThan(1, ""because"")")]
     [InlineData(@"Assert.Less(0d, 1, ""because"", 2, 3)", @"0d.Should().BeLessThan(1, ""because"", 2, 3)")]
 
-
     [InlineData(@"Assert.LessOrEqual(0, 1)", @"0.Should().BeLessThanOrEqualTo(1)")]
     [InlineData(@"Assert.LessOrEqual(0, 1, ""because"")", @"0.Should().BeLessThanOrEqualTo(1, ""because"")")]
     [InlineData(@"Assert.LessOrEqual(0, 1, ""because"", 2, 3)", @"0.Should().BeLessThanOrEqualTo(1, ""because"", 2, 3)")]
@@ -778,7 +777,9 @@ class Test
     [InlineData(@"Assert.That(""aa"", Has.Length.EqualTo(2))", @"""aa"".Should().HaveLength(2)")]
 
     [InlineData(@"Assert.That("""", Is.EqualTo(""expected""))", @""""".Should().Be(""expected"")")]
+    [InlineData(@"Assert.That("""", Is.EqualTo(""expected"").IgnoreCase)", @""""".Should().BeEquivalentTo(""expected"")")]
     [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected""))", @""""".Should().NotBe(""expected"")")]
+    [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected"").IgnoreCase)", @""""".Should().NotBeEquivalentTo(""expected"")")]
     [InlineData(@"Assert.That(collection, Is.EqualTo(new int[0]))", @"collection.Should().Equal(new int[0])")]
     [InlineData(@"Assert.That(collection, Is.Not.EqualTo(new int[0]))", @"collection.Should().NotEqual(new int[0])")]
     [InlineData(@"Assert.That((IEnumerable<int>)collection, Is.EqualTo(new int[0]))", @"((IEnumerable<int>)collection).Should().Equal(new int[0])")]
@@ -843,5 +844,29 @@ class Test
     }
 }
 """);
+    }
+
+    [Theory]
+    [InlineData(@"Assert.That(collection, Is.EqualTo(otherCollection).IgnoreCase)")]
+    [InlineData(@"Assert.That(collection, Is.EquivalentTo(otherCollection).IgnoreCase)")]
+    [InlineData(@"Assert.That(collection, Is.Not.EqualTo(otherCollection).IgnoreCase)")]
+    [InlineData(@"Assert.That(collection, Is.Not.EquivalentTo(otherCollection).IgnoreCase)")]
+
+    public Task AssertThatStringCollectionIsEqualToIgnoreCase_ExpectReportButNoFix(string code)
+    {
+        return Assert($$"""
+            using System.Collections.Generic;
+            using NUnit.Framework;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var collection = new string[1];
+                    var otherCollection = new string[1];
+                    [|{{code}}|];
+                }
+            }
+            """);
     }
 }

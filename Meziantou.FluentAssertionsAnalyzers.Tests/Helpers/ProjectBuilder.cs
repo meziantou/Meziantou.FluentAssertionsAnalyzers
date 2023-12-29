@@ -283,7 +283,7 @@ public sealed partial class ProjectBuilder
 
     public ProjectBuilder ShouldFixCodeWith(string codeFix)
     {
-        return ShouldFixCodeWith(index: null, codeFix);
+        return ShouldFixCodeWith(index: null, codeFix ?? SourceCode);
     }
 
     public ProjectBuilder ShouldFixCodeWith(int? index, string codeFix)

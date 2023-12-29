@@ -186,9 +186,9 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                 }
                 else
                 {
-                    var useBeApproximately = leftType.SpecialType is SpecialType.System_Double or SpecialType.System_Single 
+                    var useBeApproximately = leftType.SpecialType is SpecialType.System_Double or SpecialType.System_Single
                                              && arguments.FirstOrDefault(x => x.NameColon?.Name.Identifier.ValueText is "delta") is not null;
-                
+
                     result = rewrite.UsingShould(right, useBeApproximately ? "BeApproximately" : "Be", ArgumentList(left, arguments.Skip(2)));
                 }
             }
@@ -500,6 +500,13 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                                 result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
                             }
                         }
+                        else if (IsMethod(out expected, isSymbol, "EqualTo", "IgnoreCase"))
+                        {
+                            // Don't provide a fix if the assertion is applied to a string collection, as there is no straight conversion.
+                            var isString = method.Parameters[0].Type.SpecialType == SpecialType.System_String;
+                            if (isString)
+                                result = rewrite.UsingShould(arguments[0], "BeEquivalentTo", ArgumentList(expected, arguments.Skip(2)));
+                        }
                         else if (IsMethod(out expected, isSymbol, "Not", "EqualTo"))
                         {
                             var (isCollection, isMigrationSupported) = IsCollection(arguments[0]);
@@ -508,6 +515,13 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                                 var replacementMethodName = isCollection ? "NotEqual" : "NotBe";
                                 result = rewrite.UsingShould(arguments[0], replacementMethodName, ArgumentList(expected, arguments.Skip(2)));
                             }
+                        }
+                        else if (IsMethod(out expected, isSymbol, "Not", "EqualTo", "IgnoreCase"))
+                        {
+                            // Don't provide a fix if the assertion is applied to a string collection, as there is no straight conversion.
+                            var isString = method.Parameters[0].Type.SpecialType == SpecialType.System_String;
+                            if (isString)
+                                result = rewrite.UsingShould(arguments[0], "NotBeEquivalentTo", ArgumentList(expected, arguments.Skip(2)));
                         }
                         else if (IsMethod(out expected, isSymbol, "SameAs"))
                         {
@@ -882,13 +896,13 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
         var right = arguments[1];
         var leftValue = semanticModel.GetConstantValue(left.Expression, cancellationToken);
         var rightValue = semanticModel.GetConstantValue(right.Expression, cancellationToken);
-        
+
         // Don't invert if both are constant
         if (leftValue.HasValue && rightValue.HasValue)
         {
             return (left, right);
         }
-        
+
         // Invert if right is constant
         if (rightValue.HasValue)
         {
