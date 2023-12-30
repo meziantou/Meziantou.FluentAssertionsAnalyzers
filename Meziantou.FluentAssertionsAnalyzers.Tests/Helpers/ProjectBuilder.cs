@@ -286,6 +286,11 @@ public sealed partial class ProjectBuilder
         return ShouldFixCodeWith(index: null, codeFix);
     }
 
+    public ProjectBuilder ShouldFixCodeWithOriginalCode()
+    {
+        return ShouldFixCodeWith(index: null, SourceCode);
+    }
+
     public ProjectBuilder ShouldFixCodeWith(int? index, string codeFix)
     {
         ExpectedFixedCode = codeFix;

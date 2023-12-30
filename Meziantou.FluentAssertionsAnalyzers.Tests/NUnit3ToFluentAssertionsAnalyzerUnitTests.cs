@@ -18,10 +18,19 @@ public sealed class NUnit3ToFluentAssertionsAnalyzerUnitTests
 
     private static Task Assert(string sourceCode, string fix = null)
     {
-        return CreateProjectBuilder()
-                  .WithSourceCode(sourceCode)
-                  .ShouldFixCodeWith(fix ?? sourceCode)
-                  .ValidateAsync();
+        var projectBuilder = CreateProjectBuilder()
+            .WithSourceCode(sourceCode);
+
+        if (fix is null)
+        {
+            projectBuilder.ShouldFixCodeWithOriginalCode();
+        }
+        else
+        {
+            projectBuilder.ShouldFixCodeWith(fix);
+        }
+
+        return projectBuilder.ValidateAsync();
     }
 
     [Fact]
@@ -51,7 +60,7 @@ class Test
 }
 """);
     }
-    
+
     [Fact]
     public Task Assert_Inconclusive_NoReport()
     {
@@ -69,7 +78,7 @@ class Test
 }
 """);
     }
-    
+
     [Fact]
     public Task Assert_Ignore_NoReport()
     {
@@ -87,7 +96,7 @@ class Test
 }
 """);
     }
-    
+
     [Fact]
     public Task Assert_Fail_ExcludedFromOptions()
     {
@@ -107,7 +116,7 @@ class Test
                   .AddAnalyzerConfiguration("mfa_excluded_methods", "M:NUnit.Framework.Assert.Fail")
                   .ValidateAsync();
     }
-    
+
     [Fact]
     public Task Assert_Fail_String_ExcludedFromOptions()
     {
@@ -127,7 +136,7 @@ class Test
                   .AddAnalyzerConfiguration("mfa_excluded_methods", "M:NUnit.Framework.Assert.Fail(System.String)")
                   .ValidateAsync();
     }
-    
+
     [Fact]
     public Task Assert_MultiMethods_ExcludedFromOptions()
     {
@@ -317,7 +326,7 @@ class Test
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d)", @"((double?)null).Should().BeApproximately(0d, 2d)")]
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d, ""because"")", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"")")]
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d, ""because"", 1, 2)", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"", 1, 2)")]
-    
+
     [InlineData(@"Assert.AreEqual(0f, (float?)null, delta: 0.1f)", @"((float?)null).Should().BeApproximately(0f, 0.1f)")]
     [InlineData(@"Assert.AreEqual(0f, 1f, delta: 0.1f)", @"1f.Should().BeApproximately(0f, 0.1f)")]
 
@@ -536,7 +545,6 @@ class Test
     [InlineData(@"Assert.Less(0d, 1)", @"0d.Should().BeLessThan(1)")]
     [InlineData(@"Assert.Less(0d, 1, ""because"")", @"0d.Should().BeLessThan(1, ""because"")")]
     [InlineData(@"Assert.Less(0d, 1, ""because"", 2, 3)", @"0d.Should().BeLessThan(1, ""because"", 2, 3)")]
-
 
     [InlineData(@"Assert.LessOrEqual(0, 1)", @"0.Should().BeLessThanOrEqualTo(1)")]
     [InlineData(@"Assert.LessOrEqual(0, 1, ""because"")", @"0.Should().BeLessThanOrEqualTo(1, ""because"")")]
@@ -778,7 +786,9 @@ class Test
     [InlineData(@"Assert.That(""aa"", Has.Length.EqualTo(2))", @"""aa"".Should().HaveLength(2)")]
 
     [InlineData(@"Assert.That("""", Is.EqualTo(""expected""))", @""""".Should().Be(""expected"")")]
+    [InlineData(@"Assert.That("""", Is.EqualTo(""expected"").IgnoreCase)", @""""".Should().BeEquivalentTo(""expected"")")]
     [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected""))", @""""".Should().NotBe(""expected"")")]
+    [InlineData(@"Assert.That("""", Is.Not.EqualTo(""expected"").IgnoreCase)", @""""".Should().NotBeEquivalentTo(""expected"")")]
     [InlineData(@"Assert.That(collection, Is.EqualTo(new int[0]))", @"collection.Should().Equal(new int[0])")]
     [InlineData(@"Assert.That(collection, Is.Not.EqualTo(new int[0]))", @"collection.Should().NotEqual(new int[0])")]
     [InlineData(@"Assert.That((IEnumerable<int>)collection, Is.EqualTo(new int[0]))", @"((IEnumerable<int>)collection).Should().Equal(new int[0])")]
@@ -843,5 +853,28 @@ class Test
     }
 }
 """);
+    }
+
+    [Theory]
+    [InlineData(@"Assert.That(collection, Is.EqualTo(otherCollection).IgnoreCase)")]
+    [InlineData(@"Assert.That(collection, Is.EquivalentTo(otherCollection).IgnoreCase)")]
+    [InlineData(@"Assert.That(collection, Is.Not.EqualTo(otherCollection).IgnoreCase)")]
+    [InlineData(@"Assert.That(collection, Is.Not.EquivalentTo(otherCollection).IgnoreCase)")]
+    public Task AssertThatStringCollectionIsEqualToIgnoreCase_ExpectReportButNoFix(string code)
+    {
+        return Assert($$"""
+            using System.Collections.Generic;
+            using NUnit.Framework;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var collection = new string[1];
+                    var otherCollection = new string[1];
+                    [|{{code}}|];
+                }
+            }
+            """);
     }
 }
