@@ -851,7 +851,6 @@ class Test
     [InlineData(@"Assert.That(collection, Is.EquivalentTo(otherCollection).IgnoreCase)")]
     [InlineData(@"Assert.That(collection, Is.Not.EqualTo(otherCollection).IgnoreCase)")]
     [InlineData(@"Assert.That(collection, Is.Not.EquivalentTo(otherCollection).IgnoreCase)")]
-
     public Task AssertThatStringCollectionIsEqualToIgnoreCase_ExpectReportButNoFix(string code)
     {
         return Assert($$"""
