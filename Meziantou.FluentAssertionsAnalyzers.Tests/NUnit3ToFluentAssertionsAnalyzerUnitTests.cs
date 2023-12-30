@@ -18,10 +18,19 @@ public sealed class NUnit3ToFluentAssertionsAnalyzerUnitTests
 
     private static Task Assert(string sourceCode, string fix = null)
     {
-        return CreateProjectBuilder()
-                  .WithSourceCode(sourceCode)
-                  .ShouldFixCodeWith(fix)
-                  .ValidateAsync();
+        var projectBuilder = CreateProjectBuilder()
+            .WithSourceCode(sourceCode);
+
+        if (fix is null)
+        {
+            projectBuilder.ShouldFixCodeWithOriginalCode();
+        }
+        else
+        {
+            projectBuilder.ShouldFixCodeWith(fix);
+        }
+
+        return projectBuilder.ValidateAsync();
     }
 
     [Fact]
@@ -51,7 +60,7 @@ class Test
 }
 """);
     }
-    
+
     [Fact]
     public Task Assert_Inconclusive_NoReport()
     {
@@ -69,7 +78,7 @@ class Test
 }
 """);
     }
-    
+
     [Fact]
     public Task Assert_Ignore_NoReport()
     {
@@ -87,7 +96,7 @@ class Test
 }
 """);
     }
-    
+
     [Fact]
     public Task Assert_Fail_ExcludedFromOptions()
     {
@@ -107,7 +116,7 @@ class Test
                   .AddAnalyzerConfiguration("mfa_excluded_methods", "M:NUnit.Framework.Assert.Fail")
                   .ValidateAsync();
     }
-    
+
     [Fact]
     public Task Assert_Fail_String_ExcludedFromOptions()
     {
@@ -127,7 +136,7 @@ class Test
                   .AddAnalyzerConfiguration("mfa_excluded_methods", "M:NUnit.Framework.Assert.Fail(System.String)")
                   .ValidateAsync();
     }
-    
+
     [Fact]
     public Task Assert_MultiMethods_ExcludedFromOptions()
     {
@@ -317,7 +326,7 @@ class Test
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d)", @"((double?)null).Should().BeApproximately(0d, 2d)")]
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d, ""because"")", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"")")]
     [InlineData(@"Assert.AreEqual(0d, (double?)null, delta: 2d, ""because"", 1, 2)", @"((double?)null).Should().BeApproximately(0d, 2d, ""because"", 1, 2)")]
-    
+
     [InlineData(@"Assert.AreEqual(0f, (float?)null, delta: 0.1f)", @"((float?)null).Should().BeApproximately(0f, 0.1f)")]
     [InlineData(@"Assert.AreEqual(0f, 1f, delta: 0.1f)", @"1f.Should().BeApproximately(0f, 0.1f)")]
 
