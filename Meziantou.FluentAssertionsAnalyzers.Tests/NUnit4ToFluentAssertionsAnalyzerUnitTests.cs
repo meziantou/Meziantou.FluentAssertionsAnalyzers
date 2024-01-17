@@ -785,4 +785,66 @@ class Test
             }
             """);
     }
+    
+    [Fact]
+    public Task Assert_AreEqual_to_null()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = System.Array.Empty<int>();
+                    [|ClassicAssert.AreEqual(null, x)|];
+                }
+            }
+            """,
+            """
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = System.Array.Empty<int>();
+                    x.Should().BeNull();
+                }
+            }
+            """);
+    }
+    
+    [Fact]
+    public Task Assert_AreNotEqual_to_null()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = System.Array.Empty<int>();
+                    [|ClassicAssert.AreNotEqual(x, null)|];
+                }
+            }
+            """,
+            """
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest()
+                {
+                    var x = System.Array.Empty<int>();
+                    x.Should().NotBeNull();
+                }
+            }
+            """);
+    }
 }
