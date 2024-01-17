@@ -180,7 +180,15 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             {
                 var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
                 var leftType = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type;
-                if (IsCollection(leftType))
+                if (left.Expression is LiteralExpressionSyntax { Token.Value: null })
+                {
+                    result = rewrite.UsingShould(right, "BeNull", arguments.Skip(2));
+                }
+                else if (leftType is null)
+                {
+                    // Not supported
+                }
+                else if (IsCollection(leftType))
                 {
                     result = rewrite.UsingShould(right, "Equal", ArgumentList(left, arguments.Skip(2)));
                 }
@@ -196,7 +204,15 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
             {
                 var (left, right) = GetLeftRight(arguments, semanticModel, cancellationToken);
                 var leftType = semanticModel.GetTypeInfo(left.Expression, cancellationToken).Type;
-                if (IsCollection(leftType))
+                if (left.Expression is LiteralExpressionSyntax { Token.Value: null })
+                {
+                    result = rewrite.UsingShould(right, "NotBeNull", arguments.Skip(2));
+                }
+                else if (leftType is null)
+                {
+                    // Not supported
+                }
+                else if (IsCollection(leftType))
                 {
                     result = rewrite.UsingShould(right, "NotEqual", ArgumentList(left, arguments.Skip(2)));
                 }
