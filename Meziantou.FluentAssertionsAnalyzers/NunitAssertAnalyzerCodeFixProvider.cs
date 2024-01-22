@@ -192,6 +192,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                 {
                     result = rewrite.UsingShould(right, "Equal", ArgumentList(left, arguments.Skip(2)));
                 }
+                else if (leftType.SpecialType != SpecialType.System_String && leftType.IsReferenceType)
+                {
+                    result = rewrite.UsingShould(right, "BeSameAs", ArgumentList(left, arguments.Skip(2)));
+                }
                 else
                 {
                     var useBeApproximately = leftType.SpecialType is SpecialType.System_Double or SpecialType.System_Single
@@ -215,6 +219,10 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                 else if (IsCollection(leftType))
                 {
                     result = rewrite.UsingShould(right, "NotEqual", ArgumentList(left, arguments.Skip(2)));
+                }
+                else if (leftType.SpecialType != SpecialType.System_String && leftType.IsReferenceType)
+                {
+                    result = rewrite.UsingShould(right, "NotBeSameAs", ArgumentList(left, arguments.Skip(2)));
                 }
                 else
                 {

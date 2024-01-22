@@ -847,4 +847,66 @@ class Test
             }
             """);
     }
+    
+    [Fact]
+    public Task Assert_AreEqual_on_assemblies()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+            using System.Reflection;
+
+            class Test
+            {
+                public void MyTest(Assembly assembly1, Assembly assembly2)
+                {
+                    [|ClassicAssert.AreEqual(assembly1, assembly2)|];
+                }
+            }
+            """,
+            """
+            using System.Reflection;
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest(Assembly assembly1, Assembly assembly2)
+                {
+                    assembly2.Should().BeSameAs(assembly1);
+                }
+            }
+            """);
+    }
+    
+    [Fact]
+    public Task Assert_AreNotEqual_on_assemblies()
+    {
+        return Assert(
+            """
+            using NUnit.Framework.Legacy;
+            using System.Reflection;
+
+            class Test
+            {
+                public void MyTest(Assembly assembly1, Assembly assembly2)
+                {
+                    [|ClassicAssert.AreNotEqual(assembly1, assembly2)|];
+                }
+            }
+            """,
+            """
+            using System.Reflection;
+            using FluentAssertions;
+            using NUnit.Framework.Legacy;
+
+            class Test
+            {
+                public void MyTest(Assembly assembly1, Assembly assembly2)
+                {
+                    assembly2.Should().NotBeSameAs(assembly1);
+                }
+            }
+            """);
+    }
 }
