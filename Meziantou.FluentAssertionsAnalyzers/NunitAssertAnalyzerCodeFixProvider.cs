@@ -192,7 +192,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                 {
                     result = rewrite.UsingShould(right, "Equal", ArgumentList(left, arguments.Skip(2)));
                 }
-                else if (leftType.SpecialType != SpecialType.System_String && leftType.IsReferenceType)
+                else if (leftType.Name == "Assembly" && leftType.ContainingNamespace.ToDisplayString() == "System.Reflection")
                 {
                     result = rewrite.UsingShould(right, "BeSameAs", ArgumentList(left, arguments.Skip(2)));
                 }
@@ -220,7 +220,7 @@ public sealed class NunitAssertAnalyzerCodeFixProvider : CodeFixProvider
                 {
                     result = rewrite.UsingShould(right, "NotEqual", ArgumentList(left, arguments.Skip(2)));
                 }
-                else if (leftType.SpecialType != SpecialType.System_String && leftType.IsReferenceType)
+                else if (leftType.Name == "Assembly" && leftType.ContainingNamespace.ToDisplayString() == "System.Reflection")
                 {
                     result = rewrite.UsingShould(right, "NotBeSameAs", ArgumentList(left, arguments.Skip(2)));
                 }
