@@ -1,19 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base",
-    ":dependencyDashboardApproval"
+    "github>meziantou/renovate-config",
+    ":automergeAll"
   ],
   "packageRules": [
     {
       "matchPackageNames": ["Microsoft.CodeAnalysis.CSharp.Workspaces", "Microsoft.CodeAnalysis.Analyzers"],
       "groupName": "roslyn-analyzers",
       "enabled": false
-    },
-    {
-      "matchPackagePatterns": [ ".*" ],
-      "groupName": "all",
-      "separateMajorMinor": false
     }
   ]
 }
