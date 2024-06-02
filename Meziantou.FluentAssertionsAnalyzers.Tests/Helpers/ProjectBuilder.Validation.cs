@@ -21,17 +21,17 @@ public sealed partial class ProjectBuilder
     {
         if (DiagnosticAnalyzer is null)
         {
-            Assert.True(false, "DiagnosticAnalyzer is not configured");
+            Assert.Fail("DiagnosticAnalyzer is not configured");
         }
 
         if (ExpectedFixedCode is not null && CodeFixProviders.Count == 0)
         {
-            Assert.True(false, "CodeFixProvider is not configured");
+            Assert.Fail("CodeFixProvider is not configured");
         }
 
         if (ExpectedDiagnosticResults is null)
         {
-            Assert.True(false, "ExpectedDiagnostic is not configured");
+            Assert.Fail("ExpectedDiagnostic is not configured");
         }
 
         await VerifyDiagnostic(ExpectedDiagnosticResults).ConfigureAwait(false);
@@ -65,7 +65,7 @@ public sealed partial class ProjectBuilder
         {
             var diagnosticsOutput = actualResults.Count != 0 ? FormatDiagnostics(analyzer, [.. actualResults]) : "    NONE.";
 
-            Assert.True(false, $"Mismatch between number of diagnostics returned, expected \"{expectedCount}\" actual \"{actualCount}\"\r\n\r\nDiagnostics:\r\n{diagnosticsOutput}\r\n");
+            Assert.Fail($"Mismatch between number of diagnostics returned, expected \"{expectedCount}\" actual \"{actualCount}\"\r\n\r\nDiagnostics:\r\n{diagnosticsOutput}\r\n");
         }
 
         for (var i = 0; i < expectedResults.Count; i++)
@@ -77,7 +77,7 @@ public sealed partial class ProjectBuilder
             {
                 if (actual.Location != Location.None)
                 {
-                    Assert.True(false,
+                    Assert.Fail(
                         string.Format(CultureInfo.InvariantCulture, "Expected:\nA project diagnostic with No location\nActual:\n{0}",
                         FormatDiagnostics(analyzer, actual)));
                 }
@@ -89,7 +89,7 @@ public sealed partial class ProjectBuilder
 
                 if (additionalLocations.Length != expected.Locations.Count - 1)
                 {
-                    Assert.True(false,
+                    Assert.Fail(
                         string.Format(CultureInfo.InvariantCulture,
                             "Expected {0} additional locations but got {1} for Diagnostic:\r\n    {2}\r\n",
                             expected.Locations.Count - 1, additionalLocations.Length,
@@ -104,21 +104,21 @@ public sealed partial class ProjectBuilder
 
             if (expected.Id is not null && !string.Equals(actual.Id, expected.Id, StringComparison.Ordinal))
             {
-                Assert.True(false,
+                Assert.Fail(
                     string.Format(CultureInfo.InvariantCulture, "Expected diagnostic id to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                         expected.Id, actual.Id, FormatDiagnostics(analyzer, actual)));
             }
 
             if (expected.Severity is not null && actual.Severity != expected.Severity)
             {
-                Assert.True(false,
+                Assert.Fail(
                     string.Format(CultureInfo.InvariantCulture, "Expected diagnostic severity to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                         expected.Severity, actual.Severity, FormatDiagnostics(analyzer, actual)));
             }
 
             if (expected.Message is not null && !string.Equals(actual.GetMessage(), expected.Message, StringComparison.Ordinal))
             {
-                Assert.True(false,
+                Assert.Fail(
                     string.Format(CultureInfo.InvariantCulture, "Expected diagnostic message to be \"{0}\" was \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                         expected.Message, actual.GetMessage(), FormatDiagnostics(analyzer, actual)));
             }
@@ -254,7 +254,7 @@ public sealed partial class ProjectBuilder
                         sourceCode = (await document.GetSyntaxRootAsync().ConfigureAwait(false)).ToFullString();
                     }
 
-                    Assert.True(false, "The code doesn't compile. " + string.Join(Environment.NewLine, result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error)) + Environment.NewLine + sourceCode);
+                    Assert.Fail("The code doesn't compile. " + string.Join(Environment.NewLine, result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error)) + Environment.NewLine + sourceCode);
                 }
             }
 
@@ -361,7 +361,7 @@ public sealed partial class ProjectBuilder
         {
             if (actualLinePosition.Line + 1 != expected.LineStart)
             {
-                Assert.True(false,
+                Assert.Fail(
                     string.Format(CultureInfo.InvariantCulture, "Expected diagnostic to be on line \"{0}\" was actually on line \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                         expected.LineStart, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
             }
@@ -372,7 +372,7 @@ public sealed partial class ProjectBuilder
         {
             if (actualLinePosition.Character + 1 != expected.ColumnStart)
             {
-                Assert.True(false,
+                Assert.Fail(
                     string.Format(CultureInfo.InvariantCulture, "Expected diagnostic to start at column \"{0}\" was actually at column \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                         expected.ColumnStart, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
             }
@@ -387,7 +387,7 @@ public sealed partial class ProjectBuilder
             {
                 if (actualLinePosition.Line + 1 != expected.LineEnd)
                 {
-                    Assert.True(false,
+                    Assert.Fail(
                         string.Format(CultureInfo.InvariantCulture, "Expected diagnostic to end on line \"{0}\" was actually on line \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                             expected.LineStart, actualLinePosition.Line + 1, FormatDiagnostics(analyzer, diagnostic)));
                 }
@@ -398,7 +398,7 @@ public sealed partial class ProjectBuilder
             {
                 if (actualLinePosition.Character + 1 != expected.ColumnEnd)
                 {
-                    Assert.True(false,
+                    Assert.Fail(
                         string.Format(CultureInfo.InvariantCulture, "Expected diagnostic to end at column \"{0}\" was actually at column \"{1}\"\r\n\r\nDiagnostic:\r\n    {2}\r\n",
                             expected.ColumnStart, actualLinePosition.Character + 1, FormatDiagnostics(analyzer, diagnostic)));
                 }
