@@ -8,6 +8,7 @@
     <Description>A Roslyn analyzer to help migrate from Xunit / NUnit assertions to FluentAssertions</Description>
     <PackageTags>analyzers, nunit, xunit, fluentassertions</PackageTags>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
