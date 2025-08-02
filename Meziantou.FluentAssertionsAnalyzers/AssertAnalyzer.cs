@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -91,7 +92,7 @@ public sealed class AssertAnalyzer : DiagnosticAnalyzer
         public bool IsNUnitAvailable => _nunitAssertionExceptionSymbol is not null;
         public bool IsXUnitAvailable => _xunitAssertSymbol is not null;
 
-        private static readonly char[] SymbolsSeparators = [';'];
+        private static readonly char[] SymbolsSeparators = ['|'];
 
         private bool IsMethodExcluded(AnalyzerOptions options, IInvocationOperation operation)
         {
