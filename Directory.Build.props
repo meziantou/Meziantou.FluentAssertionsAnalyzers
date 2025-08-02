@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-      <LangVersion>preview</LangVersion>
+      <LangVersion>latest</LangVersion>
     </PropertyGroup>
   
     <PropertyGroup>  
@@ -11,10 +11,10 @@
       <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="" Visible="false" />
     </ItemGroup>
   
-    <ItemGroup>
+    <!--<ItemGroup>
       <PackageReference Include="Meziantou.DotNet.CodingStandard" Version="1.0.172">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-    </ItemGroup>
+    </ItemGroup>-->
   </Project>
